@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hisaab Sathi | HS</title>
-  <meta name="description" content="Hisaab Sathi helps you track daily expenses, earnings, udhar given, and udhar returned in one clean mobile-friendly ledger.">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Simple daily finance tracker for expenses, income, and udhar management.">
+  <meta name="theme-color" content="#0b1220">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="logo.svg">
   <link rel="manifest" href="manifest.json">
@@ -15,187 +15,121 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body data-theme="dark">
+  <div class="money-orb orb-one"></div>
+  <div class="money-orb orb-two"></div>
+  <div class="money-orb orb-three"></div>
+
   <div class="app-shell">
-    <header class="hero">
-      <div class="hero-top">
-        <a class="family-badge" href="https://snakeeye-sudo.github.io/Aapka-Sathi/" target="_blank" rel="noopener">Part of Aapka-Sathi Family</a>
-        <div class="hero-actions">
-          <button id="themeToggle" class="icon-button" type="button">Theme</button>
-          <button id="installButton" class="icon-button hidden" type="button">Install</button>
+    <header class="topbar panel">
+      <div class="topbar-row">
+        <div class="topbar-brand">
+          <img src="logo.svg" alt="Hisaab Sathi logo" class="brand-logo">
+          <div>
+            <p class="eyebrow">HS</p>
+            <h1>Hisaab Sathi</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button id="installButton" class="chip-btn hidden" type="button">Install</button>
+          <button id="menuOpen" class="primary-btn" type="button">Menu</button>
         </div>
       </div>
-
-      <div class="brand-row">
-        <img src="logo.svg" alt="Hisaab Sathi logo" class="brand-logo">
-        <div>
-          <p class="eyebrow">HS</p>
-          <h1>Hisaab Sathi</h1>
-          <p class="hero-copy">Roz ka kharch, kamai, udhar diya, udhar wapas aaya. Sab kuch ek jagah, clearly.</p>
-        </div>
+      <a class="family-badge" href="https://snakeeye-sudo.github.io/Aapka-Sathi/" target="_blank" rel="noopener">Part of Aapka-Sathi Family</a>
+      <p class="hero-copy">Roz ka kharch, kamai, aur udhar ka simple hisaab. Confusion kam, clarity zyada.</p>
+      <div class="quote-strip">
+        <p class="section-kicker">Money Thought</p>
+        <blockquote id="quoteText">Small money discipline builds big peace.</blockquote>
       </div>
-
-      <div class="hero-grid">
-        <section class="hero-card auth-card">
-          <p class="section-kicker">Family Login</p>
-          <p id="authState" class="auth-state">No active family login</p>
-          <div class="inline-actions">
-            <button id="authButton" class="primary-button" type="button">Login with Google</button>
-            <button id="cloudSyncButton" class="secondary-button" type="button">Sync cloud</button>
-          </div>
-          <p id="cloudStatus" class="helper-text">Same Google login works across the whole Sathi family.</p>
-        </section>
-
-        <section class="hero-card reminder-card">
-          <p class="section-kicker">Daily Reminder</p>
-          <label class="toggle-row">
-            <span>Remind me once every 24 hours to log today's hisaab</span>
-            <input id="notifToggle" type="checkbox">
-          </label>
-          <div class="inline-actions">
-            <input id="notifName" class="text-input compact" type="text" placeholder="Name for reminder">
-            <button id="notifSave" class="secondary-button" type="button">Save</button>
-          </div>
-          <p id="notifStatus" class="helper-text">Reminder is local and best-effort on supported browsers.</p>
-        </section>
-      </div>
+      <div id="summaryGrid" class="summary-grid"></div>
     </header>
 
     <main class="main-grid">
-      <section class="panel form-panel">
-        <div class="panel-head">
+      <section class="panel entry-panel">
+        <div class="section-head">
           <div>
             <p class="section-kicker">Quick Entry</p>
-            <h2>Add a record</h2>
+            <h2>Aaj ka record add karo</h2>
           </div>
+          <p id="monthLabel" class="helper-text"></p>
         </div>
 
         <form id="entryForm" class="entry-form">
           <div class="type-grid">
             <label class="type-pill">
               <input type="radio" name="entryType" value="expense" checked>
-              <span>Expense</span>
+              <span>Kharch</span>
             </label>
             <label class="type-pill">
               <input type="radio" name="entryType" value="income">
-              <span>Income</span>
+              <span>Kamai</span>
             </label>
             <label class="type-pill">
               <input type="radio" name="entryType" value="loan-given">
-              <span>Loan Given</span>
+              <span>Udhar Diya</span>
             </label>
             <label class="type-pill">
               <input type="radio" name="entryType" value="loan-returned">
-              <span>Loan Returned</span>
+              <span>Udhar Wapas</span>
             </label>
           </div>
 
           <div class="field-grid">
-            <label>
+            <label class="field">
               <span>Amount</span>
               <input id="amountInput" class="text-input" type="number" min="0" step="0.01" required placeholder="0.00">
             </label>
-            <label>
+            <label class="field">
               <span>Date</span>
               <input id="dateInput" class="text-input" type="date" required>
             </label>
-            <label>
+            <label class="field">
               <span>Category</span>
               <input id="categoryInput" class="text-input" type="text" placeholder="Food, Salary, Fuel, Rent">
             </label>
-            <label id="personField" class="hidden">
+            <label id="personField" class="field hidden">
               <span>Person Name</span>
-              <input id="personInput" class="text-input" type="text" placeholder="Who got the money or who returned it">
+              <input id="personInput" class="text-input" type="text" placeholder="Example: Rahul">
             </label>
           </div>
 
-          <label>
+          <label class="field">
             <span>Note</span>
             <textarea id="noteInput" class="text-area" rows="3" placeholder="Optional details"></textarea>
           </label>
 
-          <button class="primary-button wide-button" type="submit">Save record</button>
+          <button class="primary-btn wide-btn" type="submit">Save record</button>
         </form>
       </section>
 
-      <section class="panel summary-panel">
-        <div class="panel-head">
+      <section class="panel side-panel">
+        <div class="section-head">
           <div>
-            <p class="section-kicker">Snapshot</p>
-            <h2>Your finance view</h2>
+            <p class="section-kicker">Udhar Board</p>
+            <h2>Net balance by person</h2>
           </div>
         </div>
-
-        <div class="stat-grid" id="summaryGrid"></div>
-
-        <div class="mini-panels">
-          <article class="mini-panel">
-            <p class="section-kicker">Today</p>
-            <div id="todayList" class="stack-list"></div>
-          </article>
-          <article class="mini-panel">
-            <p class="section-kicker">Udhar Board</p>
-            <div id="loanBoard" class="stack-list"></div>
-          </article>
-        </div>
+        <div id="loanBoard" class="fixed-stack"></div>
       </section>
 
       <section class="panel ledger-panel">
-        <div class="panel-head">
+        <div class="section-head">
           <div>
             <p class="section-kicker">Ledger</p>
-            <h2>All records</h2>
+            <h2>Records</h2>
           </div>
           <div class="filter-row">
             <button class="filter-chip active" data-filter="all" type="button">All</button>
             <button class="filter-chip" data-filter="today" type="button">Today</button>
-            <button class="filter-chip" data-filter="expense" type="button">Expense</button>
-            <button class="filter-chip" data-filter="income" type="button">Income</button>
+            <button class="filter-chip" data-filter="expense" type="button">Kharch</button>
+            <button class="filter-chip" data-filter="income" type="button">Kamai</button>
             <button class="filter-chip" data-filter="loan" type="button">Udhar</button>
           </div>
         </div>
-        <div id="ledgerList" class="ledger-list"></div>
-      </section>
-
-      <section class="panel backup-panel">
-        <div class="panel-head">
-          <div>
-            <p class="section-kicker">Backup and Restore</p>
-            <h2>Safety net for your data</h2>
-          </div>
-        </div>
-
-        <div class="backup-grid">
-          <article class="mini-panel">
-            <h3>Backup</h3>
-            <p class="helper-text">Download a JSON file, share it to Gmail on mobile, or generate a compact backup code for email body fallback.</p>
-            <div class="button-stack">
-              <button id="downloadBackup" class="secondary-button" type="button">Download JSON backup</button>
-              <button id="gmailBackup" class="primary-button" type="button">Backup export to Gmail</button>
-              <button id="copyBackupCode" class="secondary-button" type="button">Copy backup code</button>
-            </div>
-            <p id="backupStatus" class="helper-text">Recommended: use Gmail backup after every few important entries.</p>
-          </article>
-
-          <article class="mini-panel">
-            <h3>Restore</h3>
-            <p class="helper-text">Import from a JSON file or paste the backup code you stored in Gmail.</p>
-            <div class="button-stack">
-              <label class="file-button">
-                <span>Import JSON backup</span>
-                <input id="restoreFile" type="file" accept=".json,application/json">
-              </label>
-            </div>
-            <textarea id="backupCodeInput" class="text-area" rows="6" placeholder="Paste backup code or raw JSON here"></textarea>
-            <div class="button-stack">
-              <button id="restoreBackupCode" class="primary-button" type="button">Restore from pasted backup</button>
-            </div>
-            <p id="restoreStatus" class="helper-text">Restoring replaces the current local ledger after confirmation.</p>
-          </article>
-        </div>
+        <div id="ledgerList" class="ledger-scroll"></div>
       </section>
     </main>
 
-    <footer class="site-footer">
+    <footer class="site-footer panel">
       <div class="footer-branding">
         <img src="logo.svg" alt="HS logo" class="footer-logo">
         <div>
@@ -203,7 +137,7 @@
           <strong>Hisaab Sathi</strong>
         </div>
       </div>
-      <p class="footer-copy">Track what you spent, what you earned, and what is still out as udhar.</p>
+      <p class="footer-copy">Crafted and developed by <strong>Er. Sangam Krishna</strong>.</p>
       <div class="footer-links">
         <a href="about.html">About</a>
         <a href="resources.html">Resources</a>
@@ -211,38 +145,80 @@
         <a href="privacy-policy.html">Privacy Policy</a>
         <a href="terms.html">Terms & Conditions</a>
         <a href="https://snakeeye-sudo.github.io/Aapka-Sathi/" target="_blank" rel="noopener">Family Hub</a>
-        <a href="https://snakeeye-sudo.github.io/pariksha-sathi/" target="_blank" rel="noopener">Pariksha Sathi</a>
-        <a href="https://snakeeye-sudo.github.io/rozgar-sathi/" target="_blank" rel="noopener">Rozgar Sathi</a>
-        <a href="https://snakeeye-sudo.github.io/Samachar-Sathi/" target="_blank" rel="noopener">Samachar Sathi</a>
       </div>
-      <p class="footer-copy">Crafted and developed by <strong>Er. Sangam Krishna</strong>.</p>
-      <button id="feedbackFab" class="feedback-fab" type="button">Feedback</button>
     </footer>
   </div>
 
-  <div id="feedbackModal" class="modal">
-    <div class="modal-card">
-      <div class="panel-head">
+  <div id="menuDrawer" class="drawer-overlay">
+    <aside class="drawer panel">
+      <div class="drawer-head">
         <div>
-          <p class="section-kicker">Feedback</p>
-          <h2>Help improve HS</h2>
+          <p class="section-kicker">HS Menu</p>
+          <h2>Tools and settings</h2>
         </div>
-        <button id="feedbackClose" class="icon-button" type="button">Close</button>
+        <button id="menuClose" class="chip-btn" type="button">Close</button>
       </div>
-      <label>
-        <span>Category</span>
-        <select id="feedbackCategory" class="text-input">
-          <option value="Bug">Bug</option>
-          <option value="Feature">Feature request</option>
-          <option value="Suggestion">Suggestion</option>
-        </select>
-      </label>
-      <label>
-        <span>Message</span>
-        <textarea id="feedbackMessage" class="text-area" rows="5" placeholder="What should improve?"></textarea>
-      </label>
-      <button id="feedbackSend" class="primary-button wide-button" type="button">Send feedback</button>
-    </div>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Family Login</p>
+        <p id="authState" class="helper-text">No active family login</p>
+        <div class="button-row">
+          <button id="authButton" class="primary-btn" type="button">Login with Google</button>
+          <button id="cloudSyncButton" class="chip-btn" type="button">Sync cloud</button>
+        </div>
+        <p id="cloudStatus" class="helper-text">Same login works across the whole Sathi family.</p>
+      </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Theme and Reminder</p>
+        <div class="button-row">
+          <button id="themeToggle" class="chip-btn" type="button">Toggle Theme</button>
+        </div>
+        <label class="toggle-row">
+          <span>Daily reminder after 24 hours</span>
+          <input id="notifToggle" type="checkbox">
+        </label>
+        <div class="button-row">
+          <input id="notifName" class="text-input compact" type="text" placeholder="Reminder name">
+          <button id="notifSave" class="chip-btn" type="button">Save</button>
+        </div>
+        <p id="notifStatus" class="helper-text">Reminder is local and best-effort on supported browsers.</p>
+      </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Backup and Restore</p>
+        <div class="button-column">
+          <button id="downloadBackup" class="chip-btn" type="button">Download JSON backup</button>
+          <button id="gmailBackup" class="primary-btn" type="button">Backup export to Gmail</button>
+          <button id="copyBackupCode" class="chip-btn" type="button">Copy backup code</button>
+          <label class="file-button">
+            <span>Import JSON backup</span>
+            <input id="restoreFile" type="file" accept=".json,application/json">
+          </label>
+        </div>
+        <textarea id="backupCodeInput" class="text-area" rows="5" placeholder="Paste backup code or raw JSON here"></textarea>
+        <button id="restoreBackupCode" class="primary-btn wide-btn" type="button">Restore from pasted backup</button>
+        <p id="backupStatus" class="helper-text">Use Gmail backup before changing phone or formatting device.</p>
+        <p id="restoreStatus" class="helper-text">Restoring replaces current local data after confirmation.</p>
+      </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Feedback</p>
+        <label class="field">
+          <span>Category</span>
+          <select id="feedbackCategory" class="text-input">
+            <option value="Bug">Bug</option>
+            <option value="Feature">Feature request</option>
+            <option value="Suggestion">Suggestion</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Message</span>
+          <textarea id="feedbackMessage" class="text-area" rows="4" placeholder="What should improve?"></textarea>
+        </label>
+        <button id="feedbackSend" class="primary-btn wide-btn" type="button">Send feedback</button>
+      </section>
+    </aside>
   </div>
 
   <script type="module" src="app.js"></script>
