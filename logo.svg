@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Hisaab Sathi logo">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#08111d"/>
+  <rect x="30" y="30" width="196" height="196" rx="44" fill="url(#bg)" opacity="0.16"/>
+  <path d="M64 72h128c8.837 0 16 7.163 16 16v80c0 8.837-7.163 16-16 16H64c-8.837 0-16-7.163-16-16V88c0-8.837 7.163-16 16-16Z" fill="#0f172a" stroke="#dffcf8" stroke-opacity=".28" stroke-width="8"/>
+  <path d="M84 110h88M84 138h88M84 166h56" stroke="#dffcf8" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="186" cy="166" r="18" fill="#2dd4bf"/>
+  <path d="M176 166l7 7 14-16" fill="none" stroke="#062223" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="128" y="102" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#f8fafc">HS</text>
+</svg>

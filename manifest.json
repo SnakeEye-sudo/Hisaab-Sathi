@@ -1,0 +1,17 @@
+{
+  "name": "Hisaab Sathi",
+  "short_name": "HS",
+  "start_url": "/Hisaab-Sathi/",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#0f172a",
+  "description": "Track daily expenses, earnings, udhar given, and udhar returned.",
+  "icons": [
+    {
+      "src": "/Hisaab-Sathi/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
