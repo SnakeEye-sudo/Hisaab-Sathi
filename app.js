@@ -1,4 +1,7 @@
 const STORAGE_KEY = "hs-ledger-v3";
+const FAMILY_THEME_KEY = "sathi-family-theme";
+const FAMILY_THEME_MODE_KEY = "sathi-family-theme-mode";
+const APP_INSTALL_MARKER = "sathi-installed-hisaab-sathi";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyC6Cpg83N8fBuvY7YOSwTWsfM9DUsaVc3E",
   authDomain: "pariksha-sathi.firebaseapp.com",
@@ -19,6 +22,7 @@ let quotes = [];
 let quoteIndex = 0;
 let dashboardReady = false;
 let appInstalled = window.matchMedia("(display-mode: standalone)").matches;
+const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
 function defaultState() {
   return {
@@ -122,10 +126,51 @@ function setDashboardReady(ready) {
   document.getElementById("dashboardShell").classList.toggle("hidden-shell", !ready);
 }
 
-function applyTheme(theme) {
-  document.body.dataset.theme = theme;
-  state.settings.theme = theme;
-  saveState();
+function getThemePreference() {
+  return localStorage.getItem(FAMILY_THEME_MODE_KEY) || localStorage.getItem(FAMILY_THEME_KEY) || state.settings.theme || "system";
+}
+
+function resolveTheme(themePreference) {
+  if (themePreference === "system") return systemThemeQuery.matches ? "dark" : "light";
+  return themePreference === "light" ? "light" : "dark";
+}
+
+function applyTheme(themePreference, persist = true) {
+  const resolvedTheme = resolveTheme(themePreference);
+  document.body.dataset.theme = resolvedTheme;
+  document.documentElement.dataset.theme = resolvedTheme;
+  state.settings.theme = resolvedTheme;
+  if (persist) {
+    localStorage.setItem(FAMILY_THEME_MODE_KEY, themePreference);
+    localStorage.setItem(FAMILY_THEME_KEY, resolvedTheme);
+    saveState();
+  }
+}
+
+function initThemeSync() {
+  applyTheme(getThemePreference(), false);
+
+  const handleSystemThemeChange = () => {
+    if ((localStorage.getItem(FAMILY_THEME_MODE_KEY) || "system") === "system") {
+      applyTheme("system", false);
+    }
+  };
+
+  if (typeof systemThemeQuery.addEventListener === "function") {
+    systemThemeQuery.addEventListener("change", handleSystemThemeChange);
+  } else if (typeof systemThemeQuery.addListener === "function") {
+    systemThemeQuery.addListener(handleSystemThemeChange);
+  }
+
+  window.addEventListener("storage", (event) => {
+    if (event.key === FAMILY_THEME_KEY || event.key === FAMILY_THEME_MODE_KEY) {
+      applyTheme(getThemePreference(), false);
+    }
+  });
+}
+
+function setPrivacyLocked(locked) {
+  document.querySelector(".app-shell")?.classList.toggle("privacy-locked", locked);
 }
 
 function generateQuotes() {
@@ -417,7 +462,7 @@ function setDefaultFormValues() {
   document.getElementById("dateInput").value = todayString();
   document.getElementById("notifToggle").checked = state.settings.reminderEnabled;
   document.getElementById("notifTime").value = state.settings.reminderTime;
-  applyTheme(state.settings.theme || "dark");
+  applyTheme(getThemePreference(), false);
   updateTypeVisibility();
 }
 
@@ -591,6 +636,7 @@ function maybeShowReminder() {
 }
 
 function initPwa() {
+  if (appInstalled) localStorage.setItem(APP_INSTALL_MARKER, "true");
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
@@ -599,11 +645,12 @@ function initPwa() {
     event.preventDefault();
     deferredPrompt = event;
     document.getElementById("installButton").classList.remove("hidden");
-    if (!appInstalled) openModal("installModal");
+    if (!appInstalled || new URLSearchParams(window.location.search).get("family-install") === "1") openModal("installModal");
   });
 
   window.addEventListener("appinstalled", () => {
     appInstalled = true;
+    localStorage.setItem(APP_INSTALL_MARKER, "true");
     closeModal("installModal");
     document.getElementById("installButton").classList.add("hidden");
     if (!state.settings.reminderAsked) openModal("reminderModal");
@@ -658,6 +705,8 @@ function removePasscode() {
   state.settings.passcodeHash = "";
   state.settings.passcodeHint = "";
   saveState();
+  setPrivacyLocked(false);
+  document.getElementById("unlockOverlay").classList.add("hidden");
   document.getElementById("passcodeStatus").textContent = "Passcode remove ho gaya.";
 }
 
@@ -676,6 +725,7 @@ async function unlockApp() {
     return;
   }
   document.getElementById("unlockOverlay").classList.add("hidden");
+  setPrivacyLocked(false);
   input.value = "";
   status.textContent = "";
   queuePostUnlockPrompts();
@@ -688,6 +738,7 @@ function lockNow() {
   }
   document.getElementById("unlockHint").textContent = state.settings.passcodeHint ? `Hint: ${state.settings.passcodeHint}` : "";
   document.getElementById("unlockOverlay").classList.remove("hidden");
+  setPrivacyLocked(true);
   closeMenu();
 }
 
@@ -916,14 +967,17 @@ function initSecurityLayer() {
   if (state.settings.passcodeHash) {
     document.getElementById("unlockHint").textContent = state.settings.passcodeHint ? `Hint: ${state.settings.passcodeHint}` : "";
     document.getElementById("unlockOverlay").classList.remove("hidden");
+    setPrivacyLocked(true);
     setDashboardReady(false);
     return;
   }
+  setPrivacyLocked(false);
   queuePostUnlockPrompts();
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
   setDefaultFormValues();
+  initThemeSync();
   initQuotes();
   initPwa();
   initEvents();

@@ -114,6 +114,26 @@ button, input, textarea, select { font: inherit; }
   padding: 14px 0 48px;
 }
 
+.privacy-target {
+  transition: opacity 0.22s ease, filter 0.22s ease, transform 0.22s ease;
+}
+
+.app-shell.privacy-locked .privacy-target {
+  opacity: 0.04;
+  filter: blur(22px);
+  transform: scale(0.985);
+  pointer-events: none;
+  user-select: none;
+}
+
+.app-shell.privacy-locked .site-footer,
+.app-shell.privacy-locked .summary-shell,
+.app-shell.privacy-locked .main-grid,
+.app-shell.privacy-locked .quote-strip,
+.app-shell.privacy-locked .family-badge {
+  visibility: hidden;
+}
+
 .panel,
 .modal-card,
 .unlock-card {
@@ -557,6 +577,7 @@ h3 { margin: 0; font-size: 18px; }
 .unlock-overlay {
   display: grid;
   place-items: center;
+  backdrop-filter: blur(12px);
 }
 
 .modal-card,
