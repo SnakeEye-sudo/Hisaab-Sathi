@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hisaab Sathi | HS</title>
   <meta name="description" content="Simple daily finance tracker for expenses, income, and udhar management.">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#082032">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="logo.svg">
   <link rel="manifest" href="manifest.json">
@@ -15,9 +15,10 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body data-theme="dark">
-  <div class="money-orb orb-one"></div>
-  <div class="money-orb orb-two"></div>
-  <div class="money-orb orb-three"></div>
+  <div class="money-haze haze-a"></div>
+  <div class="money-haze haze-b"></div>
+  <div class="money-haze haze-c"></div>
+  <div class="grid-noise"></div>
 
   <div class="app-shell">
     <header class="topbar panel">
@@ -27,23 +28,29 @@
           <div>
             <p class="eyebrow">HS</p>
             <h1>Hisaab Sathi</h1>
+            <p class="hero-copy">Roz ka kharch, kamai, aur udhar ek jagah. Seedha, safe, aur clear.</p>
           </div>
         </div>
         <div class="topbar-actions">
-          <button id="installButton" class="chip-btn hidden" type="button">Install</button>
-          <button id="menuOpen" class="primary-btn" type="button">Menu</button>
+          <button id="menuOpen" class="menu-btn" type="button" aria-label="Open menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
       </div>
       <a class="family-badge" href="https://snakeeye-sudo.github.io/Aapka-Sathi/" target="_blank" rel="noopener">Part of Aapka-Sathi Family</a>
-      <p class="hero-copy">Roz ka kharch, kamai, aur udhar ka simple hisaab. Confusion kam, clarity zyada.</p>
       <div class="quote-strip">
         <p class="section-kicker">Money Thought</p>
         <blockquote id="quoteText">Small money discipline builds big peace.</blockquote>
       </div>
-      <div id="summaryGrid" class="summary-grid"></div>
     </header>
 
-    <main class="main-grid">
+    <section id="summaryShell" class="summary-shell hidden-shell">
+      <div id="summaryGrid" class="summary-grid"></div>
+    </section>
+
+    <main id="dashboardShell" class="main-grid hidden-shell">
       <section class="panel entry-panel">
         <div class="section-head">
           <div>
@@ -112,10 +119,10 @@
       </section>
 
       <section class="panel ledger-panel">
-        <div class="section-head">
+        <div class="section-head section-head-wrap">
           <div>
             <p class="section-kicker">Ledger</p>
-            <h2>Records</h2>
+            <h2>Beautiful record timeline</h2>
           </div>
           <div class="filter-row">
             <button class="filter-chip active" data-filter="all" type="button">All</button>
@@ -138,14 +145,6 @@
         </div>
       </div>
       <p class="footer-copy">Crafted and developed by <strong>Er. Sangam Krishna</strong>.</p>
-      <div class="footer-links">
-        <a href="about.html">About</a>
-        <a href="resources.html">Resources</a>
-        <a href="contact.html">Contact</a>
-        <a href="privacy-policy.html">Privacy Policy</a>
-        <a href="terms.html">Terms & Conditions</a>
-        <a href="https://snakeeye-sudo.github.io/Aapka-Sathi/" target="_blank" rel="noopener">Family Hub</a>
-      </div>
     </footer>
   </div>
 
@@ -160,6 +159,15 @@
       </div>
 
       <section class="drawer-section">
+        <p class="section-kicker">Quick Actions</p>
+        <div class="button-row">
+          <button id="installButton" class="primary-btn hidden" type="button">Install app</button>
+          <button id="themeToggle" class="chip-btn" type="button">Toggle Theme</button>
+          <button id="lockNowButton" class="chip-btn" type="button">Lock now</button>
+        </div>
+      </section>
+
+      <section class="drawer-section">
         <p class="section-kicker">Family Login</p>
         <p id="authState" class="helper-text">No active family login</p>
         <div class="button-row">
@@ -170,19 +178,29 @@
       </section>
 
       <section class="drawer-section">
-        <p class="section-kicker">Theme and Reminder</p>
+        <p class="section-kicker">Passcode</p>
         <div class="button-row">
-          <button id="themeToggle" class="chip-btn" type="button">Toggle Theme</button>
+          <button id="openPasscodeSetup" class="chip-btn" type="button">Set / Change passcode</button>
+          <button id="removePasscode" class="chip-btn" type="button">Remove passcode</button>
         </div>
+        <p id="passcodeStatus" class="helper-text">A 4-digit passcode helps keep your hisaab private on this device.</p>
+      </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Reminder</p>
         <label class="toggle-row">
-          <span>Daily reminder after 24 hours</span>
+          <span>Daily reminder between 8 and 9 PM</span>
           <input id="notifToggle" type="checkbox">
         </label>
         <div class="button-row">
-          <input id="notifName" class="text-input compact" type="text" placeholder="Reminder name">
+          <select id="notifTime" class="text-input compact">
+            <option value="20:00">8:00 PM</option>
+            <option value="20:30">8:30 PM</option>
+            <option value="21:00">9:00 PM</option>
+          </select>
           <button id="notifSave" class="chip-btn" type="button">Save</button>
         </div>
-        <p id="notifStatus" class="helper-text">Reminder is local and best-effort on supported browsers.</p>
+        <p id="notifStatus" class="helper-text">Reminder is local and works when the browser allows notifications.</p>
       </section>
 
       <section class="drawer-section">
@@ -218,7 +236,109 @@
         </label>
         <button id="feedbackSend" class="primary-btn wide-btn" type="button">Send feedback</button>
       </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">More Pages</p>
+        <div class="footer-links">
+          <a href="about.html">About</a>
+          <a href="resources.html">Resources</a>
+          <a href="contact.html">Contact</a>
+          <a href="privacy-policy.html">Privacy Policy</a>
+          <a href="terms.html">Terms & Conditions</a>
+          <a href="https://snakeeye-sudo.github.io/Aapka-Sathi/" target="_blank" rel="noopener">Family Hub</a>
+        </div>
+      </section>
     </aside>
+  </div>
+
+  <div id="entryPromptModal" class="modal-overlay hidden">
+    <div class="modal-card hero-modal">
+      <p class="section-kicker">Welcome back</p>
+      <h2>Aaj ka record add karo</h2>
+      <p class="helper-text">Ek entry add kar do aur poora hisaab turant clear dikh jayega. Agar abhi nahi karna ho to skip bhi kar sakte ho.</p>
+      <div class="button-row">
+        <button id="entryPromptAdd" class="primary-btn" type="button">Add record</button>
+        <button id="entryPromptSkip" class="chip-btn" type="button">Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="installModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p class="section-kicker">Install Hisaab Sathi</p>
+      <h2>Phone me app jaisa rakho</h2>
+      <p class="helper-text">Install karoge to app fast khulega, easily milega, aur daily kharch add karna aur simple ho jayega.</p>
+      <div class="button-row">
+        <button id="installNowButton" class="primary-btn" type="button">Install now</button>
+        <button id="installLaterButton" class="chip-btn" type="button">Not now</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="reminderModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p class="section-kicker">Daily Reminder</p>
+      <h2>Raat me yaad dila du?</h2>
+      <p class="helper-text">8 se 9 baje ke beech ek notification bhejenge ki aaj ka kharch add kar do. Time select kar lo.</p>
+      <div class="button-column">
+        <button class="time-choice" data-time-choice="20:00" type="button">8:00 PM</button>
+        <button class="time-choice" data-time-choice="20:30" type="button">8:30 PM</button>
+        <button class="time-choice" data-time-choice="21:00" type="button">9:00 PM</button>
+      </div>
+      <div class="button-row">
+        <button id="reminderSkip" class="chip-btn" type="button">Skip for now</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="passcodePromptModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p class="section-kicker">Secure your hisaab</p>
+      <h2>4-digit passcode set karna chahoge?</h2>
+      <p class="helper-text">Agar phone kisi aur ke haath me chale jaye to passcode se aapka daily finance safe rahega.</p>
+      <div class="button-row">
+        <button id="passcodePromptYes" class="primary-btn" type="button">Set passcode</button>
+        <button id="passcodePromptLater" class="chip-btn" type="button">Maybe later</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="passcodeSetupModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p class="section-kicker">Passcode Setup</p>
+      <h2>4-digit passcode</h2>
+      <div class="field">
+        <span>Enter passcode</span>
+        <input id="passcodeInput" class="text-input" type="password" inputmode="numeric" maxlength="4" placeholder="1234">
+      </div>
+      <div class="field">
+        <span>Confirm passcode</span>
+        <input id="passcodeConfirmInput" class="text-input" type="password" inputmode="numeric" maxlength="4" placeholder="1234">
+      </div>
+      <div class="field">
+        <span>Optional hint</span>
+        <input id="passcodeHintInput" class="text-input" type="text" placeholder="Only for you">
+      </div>
+      <p id="passcodeSetupStatus" class="helper-text"></p>
+      <div class="button-row">
+        <button id="passcodeSaveButton" class="primary-btn" type="button">Save passcode</button>
+        <button id="passcodeCancelButton" class="chip-btn" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="unlockOverlay" class="unlock-overlay hidden">
+    <div class="unlock-card">
+      <img src="logo.svg" alt="Hisaab Sathi logo" class="unlock-logo">
+      <p class="section-kicker">Private Mode</p>
+      <h2>Passcode enter karo</h2>
+      <p id="unlockHint" class="helper-text"></p>
+      <input id="unlockPasscodeInput" class="text-input center-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+      <p id="unlockStatus" class="helper-text"></p>
+      <div class="button-row unlock-row">
+        <button id="unlockButton" class="primary-btn" type="button">Unlock</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="app.js"></script>

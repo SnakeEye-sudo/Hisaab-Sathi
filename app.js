@@ -1,4 +1,4 @@
-const STORAGE_KEY = "hs-ledger-v2";
+const STORAGE_KEY = "hs-ledger-v3";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyC6Cpg83N8fBuvY7YOSwTWsfM9DUsaVc3E",
   authDomain: "pariksha-sathi.firebaseapp.com",
@@ -17,6 +17,8 @@ let syncTimer = null;
 let deferredPrompt = null;
 let quotes = [];
 let quoteIndex = 0;
+let dashboardReady = false;
+let appInstalled = window.matchMedia("(display-mode: standalone)").matches;
 
 function defaultState() {
   return {
@@ -24,8 +26,12 @@ function defaultState() {
     settings: {
       theme: "dark",
       reminderEnabled: false,
-      reminderName: "",
-      lastReminderAt: 0
+      reminderTime: "20:30",
+      reminderAsked: false,
+      lastReminderAt: 0,
+      passcodeHash: "",
+      passcodeHint: "",
+      securityPromptSeen: false
     }
   };
 }
@@ -33,7 +39,9 @@ function defaultState() {
 function loadState() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    return parsed ? { ...defaultState(), ...parsed, settings: { ...defaultState().settings, ...parsed.settings } } : defaultState();
+    return parsed
+      ? { ...defaultState(), ...parsed, settings: { ...defaultState().settings, ...parsed.settings } }
+      : defaultState();
   } catch {
     return defaultState();
   }
@@ -61,6 +69,11 @@ function formatCurrency(value) {
     currency: "INR",
     maximumFractionDigits: 2
   }).format(Number(value || 0));
+}
+
+function prettyDate(dateString) {
+  const date = new Date(`${dateString}T00:00:00`);
+  return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "long", year: "numeric" }).format(date);
 }
 
 function titleCase(input) {
@@ -93,6 +106,20 @@ function amountTone(type) {
   if (type === "income") return "amount-income";
   if (type === "loan-given") return "amount-due";
   return "amount-income";
+}
+
+function openModal(id) {
+  document.getElementById(id)?.classList.remove("hidden");
+}
+
+function closeModal(id) {
+  document.getElementById(id)?.classList.add("hidden");
+}
+
+function setDashboardReady(ready) {
+  dashboardReady = ready;
+  document.getElementById("summaryShell").classList.toggle("hidden-shell", !ready);
+  document.getElementById("dashboardShell").classList.toggle("hidden-shell", !ready);
 }
 
 function applyTheme(theme) {
@@ -182,16 +209,8 @@ function generateQuotes() {
   ];
 
   const built = [];
-  for (const start of englishStarts) {
-    for (const end of englishEnds) {
-      built.push(`${start} ${end}`);
-    }
-  }
-  for (const start of hindiStarts) {
-    for (const end of hindiEnds) {
-      built.push(`${start} ${end}`);
-    }
-  }
+  for (const start of englishStarts) for (const end of englishEnds) built.push(`${start} ${end}`);
+  for (const start of hindiStarts) for (const end of hindiEnds) built.push(`${start} ${end}`);
   return built.slice(0, 500);
 }
 
@@ -227,15 +246,9 @@ function getSummary() {
       if (entry.date === today) summary.todaySpent += amount;
       if (monthKey(entry.date) === currentMonth) summary.monthSpent += amount;
     }
-    if (entry.type === "income") {
-      summary.totalEarned += amount;
-    }
-    if (entry.type === "loan-given") {
-      summary.outstandingLoan += amount;
-    }
-    if (entry.type === "loan-returned") {
-      summary.outstandingLoan -= amount;
-    }
+    if (entry.type === "income") summary.totalEarned += amount;
+    if (entry.type === "loan-given") summary.outstandingLoan += amount;
+    if (entry.type === "loan-returned") summary.outstandingLoan -= amount;
   }
   return summary;
 }
@@ -246,9 +259,7 @@ function getLoanPeople() {
     if (!(entry.type === "loan-given" || entry.type === "loan-returned")) continue;
     const person = normalizePerson(entry.person);
     if (!person.key) continue;
-    if (!people.has(person.key)) {
-      people.set(person.key, { person: person.label, given: 0, returned: 0 });
-    }
+    if (!people.has(person.key)) people.set(person.key, { person: person.label, given: 0, returned: 0 });
     const bucket = people.get(person.key);
     bucket.person = person.label;
     if (entry.type === "loan-given") bucket.given += Number(entry.amount || 0);
@@ -294,8 +305,7 @@ function renderSummary() {
       <p class="helper-text">Abhi kitna paisa wapas aana baaki hai.</p>
     </article>
   `;
-  const currentMonthName = new Date().toLocaleString("en-IN", { month: "long", year: "numeric" });
-  document.getElementById("monthLabel").textContent = currentMonthName;
+  document.getElementById("monthLabel").textContent = new Date().toLocaleString("en-IN", { month: "long", year: "numeric" });
 }
 
 function renderLoans() {
@@ -326,24 +336,56 @@ function renderLedger() {
     container.innerHTML = `<div class="empty-state">Is filter me koi record nahi mila.</div>`;
     return;
   }
-  container.innerHTML = entries.map((entry) => `
-    <article class="ledger-item">
-      <div class="ledger-topline">
-        <div>
-          <span class="entry-type-badge entry-type-${entry.type}">${entryLabel(entry.type)}</span>
-          <h3>${entry.category || (entry.person ? normalizePerson(entry.person).label : "General entry")}</h3>
+
+  const grouped = entries.reduce((acc, entry) => {
+    if (!acc[entry.date]) acc[entry.date] = [];
+    acc[entry.date].push(entry);
+    return acc;
+  }, {});
+
+  container.innerHTML = Object.entries(grouped).map(([date, group]) => {
+    const spent = group.filter((entry) => entry.type === "expense").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+    const earned = group.filter((entry) => entry.type === "income").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+    const due = group.filter((entry) => entry.type === "loan-given").reduce((sum, entry) => sum + Number(entry.amount || 0), 0)
+      - group.filter((entry) => entry.type === "loan-returned").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+
+    return `
+      <section class="ledger-date-group">
+        <div class="ledger-group-head">
+          <div>
+            <div class="ledger-date-label">${prettyDate(date)}</div>
+            <p class="helper-text">${group.length} record${group.length > 1 ? "s" : ""}</p>
+          </div>
+          <div class="ledger-summary">
+            <span class="mini-stat">Kharch ${formatCurrency(spent)}</span>
+            <span class="mini-stat">Kamai ${formatCurrency(earned)}</span>
+            <span class="mini-stat">Net udhar ${formatCurrency(due)}</span>
+          </div>
         </div>
-        <strong class="entry-amount ${amountTone(entry.type)}">${formatCurrency(entry.amount)}</strong>
-      </div>
-      <div class="ledger-meta">
-        <div>
-          <p class="helper-text">${entry.date}${entry.person ? ` | ${normalizePerson(entry.person).label}` : ""}</p>
-          <p class="helper-text">${entry.note || "No note added"}</p>
+        <div class="ledger-items">
+          ${group.map((entry) => `
+            <article class="ledger-item">
+              <div class="ledger-item-head">
+                <div>
+                  <span class="entry-type-badge entry-type-${entry.type}">${entryLabel(entry.type)}</span>
+                  <h3>${entry.category || (entry.person ? normalizePerson(entry.person).label : "General entry")}</h3>
+                </div>
+                <strong class="entry-amount ${amountTone(entry.type)}">${formatCurrency(entry.amount)}</strong>
+              </div>
+              <div class="ledger-meta-line">
+                <span>${entry.person ? normalizePerson(entry.person).label : "No person tag"}</span>
+                <span>${entry.date}</span>
+              </div>
+              <p class="entry-note">${entry.note || "No note added"}</p>
+              <div class="ledger-actions">
+                <button class="chip-btn" type="button" data-delete="${entry.id}">Delete</button>
+              </div>
+            </article>
+          `).join("")}
         </div>
-        <button class="chip-btn" type="button" data-delete="${entry.id}">Delete</button>
-      </div>
-    </article>
-  `).join("");
+      </section>
+    `;
+  }).join("");
 
   container.querySelectorAll("[data-delete]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -374,7 +416,7 @@ function updateTypeVisibility() {
 function setDefaultFormValues() {
   document.getElementById("dateInput").value = todayString();
   document.getElementById("notifToggle").checked = state.settings.reminderEnabled;
-  document.getElementById("notifName").value = state.settings.reminderName;
+  document.getElementById("notifTime").value = state.settings.reminderTime;
   applyTheme(state.settings.theme || "dark");
   updateTypeVisibility();
 }
@@ -382,13 +424,15 @@ function setDefaultFormValues() {
 function buildBackupPayload() {
   return {
     app: "Hisaab Sathi",
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     entries: state.entries,
     settings: {
       theme: state.settings.theme,
       reminderEnabled: state.settings.reminderEnabled,
-      reminderName: state.settings.reminderName
+      reminderTime: state.settings.reminderTime,
+      passcodeHash: state.settings.passcodeHash,
+      passcodeHint: state.settings.passcodeHint
     }
   };
 }
@@ -465,15 +509,15 @@ async function initFirebase() {
     const authState = document.getElementById("authState");
     const authButton = document.getElementById("authButton");
     const cloudStatus = document.getElementById("cloudStatus");
+    if (!authState || !authButton) return;
 
     if (user) {
       authState.textContent = `${user.displayName || user.email} is signed in`;
       authButton.textContent = "Logout";
       authButton.onclick = async () => firebaseAuth.signOut(authRef);
-      if (!state.settings.reminderName) document.getElementById("notifName").value = user.displayName || "";
       try {
         await loadFromCloud(user.uid);
-        cloudStatus.textContent = "Cloud data checked. Gmail backup ab bhi best fallback hai.";
+        cloudStatus.textContent = "Cloud data checked. Gmail backup still best fallback hai.";
       } catch {
         cloudStatus.textContent = "Cloud load nahi hua. Local data safe hai.";
       }
@@ -521,18 +565,28 @@ function queueCloudSave() {
   }, 900);
 }
 
+function shouldFireReminderNow() {
+  if (!state.settings.reminderEnabled) return false;
+  if (!("Notification" in window) || Notification.permission !== "granted") return false;
+
+  const [hour, minute] = (state.settings.reminderTime || "20:30").split(":").map(Number);
+  const now = new Date();
+  const windowStart = new Date();
+  windowStart.setHours(hour, minute, 0, 0);
+  const windowEnd = new Date(windowStart.getTime() + 60 * 60 * 1000);
+  const last = Number(state.settings.lastReminderAt || 0);
+
+  return now >= windowStart && now <= windowEnd && Date.now() - last >= 24 * 60 * 60 * 1000;
+}
+
 function maybeShowReminder() {
-  if (!state.settings.reminderEnabled) return;
-  if (!("Notification" in window) || Notification.permission !== "granted") return;
-  const now = Date.now();
-  if (now - Number(state.settings.lastReminderAt || 0) < 24 * 60 * 60 * 1000) return;
-  const name = state.settings.reminderName || "Friend";
+  if (!shouldFireReminderNow()) return;
   new Notification("Hisaab Sathi reminder", {
-    body: `${name}, aaj ka hisaab log kar lo.`,
+    body: "Aaj ka kharch add kar do. 2 minute ka kaam hai.",
     icon: "logo.svg",
     tag: "hs-daily-reminder"
   });
-  state.settings.lastReminderAt = now;
+  state.settings.lastReminderAt = Date.now();
   saveState();
 }
 
@@ -545,15 +599,96 @@ function initPwa() {
     event.preventDefault();
     deferredPrompt = event;
     document.getElementById("installButton").classList.remove("hidden");
+    if (!appInstalled) openModal("installModal");
   });
 
-  document.getElementById("installButton").addEventListener("click", async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
+  window.addEventListener("appinstalled", () => {
+    appInstalled = true;
+    closeModal("installModal");
     document.getElementById("installButton").classList.add("hidden");
+    if (!state.settings.reminderAsked) openModal("reminderModal");
   });
+}
+
+async function triggerInstall() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+}
+
+async function hashString(value) {
+  const buffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return [...new Uint8Array(buffer)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function savePasscode() {
+  const passcode = document.getElementById("passcodeInput").value.trim();
+  const confirmPasscode = document.getElementById("passcodeConfirmInput").value.trim();
+  const hint = document.getElementById("passcodeHintInput").value.trim();
+  const status = document.getElementById("passcodeSetupStatus");
+
+  if (!/^\d{4}$/.test(passcode)) {
+    status.textContent = "Passcode exactly 4 digits ka hona chahiye.";
+    return;
+  }
+  if (passcode !== confirmPasscode) {
+    status.textContent = "Dono passcode same nahi hain.";
+    return;
+  }
+
+  state.settings.passcodeHash = await hashString(passcode);
+  state.settings.passcodeHint = hint;
+  state.settings.securityPromptSeen = true;
+  saveState();
+  status.textContent = "Passcode saved.";
+  document.getElementById("passcodeStatus").textContent = "Passcode active hai. App khulte hi unlock pucha jayega.";
+  document.getElementById("passcodeInput").value = "";
+  document.getElementById("passcodeConfirmInput").value = "";
+  document.getElementById("passcodeHintInput").value = "";
+  closeModal("passcodeSetupModal");
+  if (!dashboardReady) openModal("entryPromptModal");
+}
+
+function removePasscode() {
+  if (!state.settings.passcodeHash) {
+    document.getElementById("passcodeStatus").textContent = "Abhi koi passcode set nahi hai.";
+    return;
+  }
+  if (!confirm("Passcode remove karna hai?")) return;
+  state.settings.passcodeHash = "";
+  state.settings.passcodeHint = "";
+  saveState();
+  document.getElementById("passcodeStatus").textContent = "Passcode remove ho gaya.";
+}
+
+async function unlockApp() {
+  const input = document.getElementById("unlockPasscodeInput");
+  const status = document.getElementById("unlockStatus");
+  const attempted = input.value.trim();
+  if (!/^\d{4}$/.test(attempted)) {
+    status.textContent = "4-digit passcode enter karo.";
+    return;
+  }
+  const hashed = await hashString(attempted);
+  if (hashed !== state.settings.passcodeHash) {
+    status.textContent = "Passcode galat hai.";
+    input.value = "";
+    return;
+  }
+  document.getElementById("unlockOverlay").classList.add("hidden");
+  input.value = "";
+  status.textContent = "";
+  queuePostUnlockPrompts();
+}
+
+function lockNow() {
+  if (!state.settings.passcodeHash) {
+    document.getElementById("passcodeStatus").textContent = "Pehle passcode set karo, phir lock use hoga.";
+    return;
+  }
+  document.getElementById("unlockHint").textContent = state.settings.passcodeHint ? `Hint: ${state.settings.passcodeHint}` : "";
+  document.getElementById("unlockOverlay").classList.remove("hidden");
+  closeMenu();
 }
 
 function openMenu() {
@@ -562,6 +697,37 @@ function openMenu() {
 
 function closeMenu() {
   document.getElementById("menuDrawer").classList.remove("open");
+}
+
+function promptPasscodeIfNeeded() {
+  if (!state.settings.passcodeHash && !state.settings.securityPromptSeen) {
+    openModal("passcodePromptModal");
+    return true;
+  }
+  return false;
+}
+
+function queuePostUnlockPrompts() {
+  const passcodePromptOpened = promptPasscodeIfNeeded();
+  if (!passcodePromptOpened && !dashboardReady) openModal("entryPromptModal");
+  if (!passcodePromptOpened && appInstalled && !state.settings.reminderAsked) openModal("reminderModal");
+}
+
+async function saveReminderPreference(time) {
+  state.settings.reminderEnabled = true;
+  state.settings.reminderTime = time;
+  state.settings.reminderAsked = true;
+  saveState();
+  document.getElementById("notifToggle").checked = true;
+  document.getElementById("notifTime").value = time;
+
+  if ("Notification" in window) {
+    const permission = await Notification.requestPermission();
+    document.getElementById("notifStatus").textContent = permission === "granted"
+      ? `Reminder save ho gaya. ${time} ke around yaad dilayega.`
+      : "Notification permission off hai. Browser settings se enable kar sakte ho.";
+  }
+  closeModal("reminderModal");
 }
 
 function initEvents() {
@@ -573,6 +739,50 @@ function initEvents() {
 
   document.getElementById("themeToggle").addEventListener("click", () => {
     applyTheme(document.body.dataset.theme === "dark" ? "light" : "dark");
+  });
+
+  document.getElementById("installButton").addEventListener("click", triggerInstall);
+  document.getElementById("installNowButton").addEventListener("click", triggerInstall);
+  document.getElementById("installLaterButton").addEventListener("click", () => closeModal("installModal"));
+
+  document.getElementById("entryPromptAdd").addEventListener("click", () => {
+    closeModal("entryPromptModal");
+    setDashboardReady(true);
+    document.getElementById("amountInput").focus();
+    document.getElementById("entryForm").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  document.getElementById("entryPromptSkip").addEventListener("click", () => {
+    closeModal("entryPromptModal");
+    setDashboardReady(true);
+  });
+
+  document.getElementById("passcodePromptYes").addEventListener("click", () => {
+    closeModal("passcodePromptModal");
+    openModal("passcodeSetupModal");
+  });
+  document.getElementById("passcodePromptLater").addEventListener("click", () => {
+    state.settings.securityPromptSeen = true;
+    saveState();
+    closeModal("passcodePromptModal");
+    if (!dashboardReady) openModal("entryPromptModal");
+  });
+  document.getElementById("openPasscodeSetup").addEventListener("click", () => openModal("passcodeSetupModal"));
+  document.getElementById("passcodeSaveButton").addEventListener("click", savePasscode);
+  document.getElementById("passcodeCancelButton").addEventListener("click", () => closeModal("passcodeSetupModal"));
+  document.getElementById("removePasscode").addEventListener("click", removePasscode);
+  document.getElementById("lockNowButton").addEventListener("click", lockNow);
+  document.getElementById("unlockButton").addEventListener("click", unlockApp);
+  document.getElementById("unlockPasscodeInput").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") unlockApp();
+  });
+
+  document.querySelectorAll(".time-choice").forEach((button) => {
+    button.addEventListener("click", () => saveReminderPreference(button.dataset.timeChoice));
+  });
+  document.getElementById("reminderSkip").addEventListener("click", () => {
+    state.settings.reminderAsked = true;
+    saveState();
+    closeModal("reminderModal");
   });
 
   document.querySelectorAll('input[name="entryType"]').forEach((input) => {
@@ -610,6 +820,8 @@ function initEvents() {
     document.getElementById("dateInput").value = todayString();
     document.querySelector('input[name="entryType"][value="expense"]').checked = true;
     updateTypeVisibility();
+    setDashboardReady(true);
+    closeModal("entryPromptModal");
     persistAndRender();
   });
 
@@ -623,12 +835,13 @@ function initEvents() {
 
   document.getElementById("notifSave").addEventListener("click", async () => {
     state.settings.reminderEnabled = document.getElementById("notifToggle").checked;
-    state.settings.reminderName = document.getElementById("notifName").value.trim();
+    state.settings.reminderTime = document.getElementById("notifTime").value;
+    state.settings.reminderAsked = true;
     saveState();
     if (state.settings.reminderEnabled && "Notification" in window) {
       const permission = await Notification.requestPermission();
       document.getElementById("notifStatus").textContent = permission === "granted"
-        ? "Reminder save ho gaya. 24 ghante baad supported browser me yaad dilayega."
+        ? `Reminder save ho gaya. ${state.settings.reminderTime} ke around yaad dilayega.`
         : "Notification permission off hai.";
     } else {
       document.getElementById("notifStatus").textContent = "Reminder preference locally save ho gayi.";
@@ -683,9 +896,9 @@ function initEvents() {
       const payload = parseBackupInput(document.getElementById("backupCodeInput").value);
       if (!confirm("Restore karke current local data replace karna hai?")) return;
       restoreFromPayload(payload);
-      document.getElementById("restoreStatus").textContent = "Backup code se restore ho gaya.";
+      document.getElementById("restoreStatus").textContent = "Pasted backup restore ho gaya.";
     } catch {
-      document.getElementById("restoreStatus").textContent = "Backup code ya JSON invalid hai.";
+      document.getElementById("restoreStatus").textContent = "Backup code parse nahi hua.";
     }
   });
 
@@ -693,20 +906,34 @@ function initEvents() {
     const category = document.getElementById("feedbackCategory").value;
     const message = document.getElementById("feedbackMessage").value.trim();
     if (!message) return;
-    const subject = encodeURIComponent(`[Hisaab Sathi Feedback] ${category}`);
-    const body = encodeURIComponent(message);
-    window.open(`mailto:sangamkrishna.dev@gmail.com?subject=${subject}&body=${body}`, "_blank");
+    const mailto = `mailto:sangamkrishna.dev@gmail.com?subject=${encodeURIComponent(`[Hisaab Sathi] ${category}`)}&body=${encodeURIComponent(message)}`;
+    window.open(mailto, "_blank");
     document.getElementById("feedbackMessage").value = "";
-    closeMenu();
   });
+}
+
+function initSecurityLayer() {
+  if (state.settings.passcodeHash) {
+    document.getElementById("unlockHint").textContent = state.settings.passcodeHint ? `Hint: ${state.settings.passcodeHint}` : "";
+    document.getElementById("unlockOverlay").classList.remove("hidden");
+    setDashboardReady(false);
+    return;
+  }
+  queuePostUnlockPrompts();
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
   setDefaultFormValues();
   initQuotes();
-  renderAll();
-  initEvents();
   initPwa();
+  initEvents();
+  renderAll();
+  setDashboardReady(false);
   maybeShowReminder();
-  await initFirebase();
+  try {
+    await initFirebase();
+  } catch {
+    document.getElementById("cloudStatus").textContent = "Cloud features abhi load nahi huin. Local app normal chalega.";
+  }
+  initSecurityLayer();
 });
