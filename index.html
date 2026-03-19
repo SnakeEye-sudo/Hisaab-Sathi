@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hisaab Sathi</title>
+  <meta name="description" content="Simple daily finance tracker for expenses, income, and udhar management.">
+  <meta name="theme-color" content="#082032">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <!-- Icon refresh: 2026-03-19 -->
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="dark">
+  <div class="money-haze haze-a"></div>
+  <div class="money-haze haze-b"></div>
+  <div class="money-haze haze-c"></div>
+  <div class="grid-noise"></div>
+
+  <div class="app-shell">
+    <header class="topbar panel privacy-target">
+      <div class="topbar-row">
+        <div class="topbar-brand">
+          <img src="logo.png" alt="Hisaab Sathi logo" class="brand-logo">
+          <div>
+            <p class="eyebrow">Hisaab Sathi</p>
+            <h1>Hisaab Sathi</h1>
+            <p class="hero-copy">Roz ka kharch, kamai, aur udhar ek jagah. Seedha, safe, aur clear.</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button id="menuOpen" class="menu-btn" type="button" aria-label="Open menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+      </div>
+      <a class="family-badge" href="https://snakeeye-sudo.github.io/Aapka-Sathi/" target="_blank" rel="noopener">Part of Aapka-Sathi Family</a>
+      <div class="quote-strip">
+        <p class="section-kicker">Money Thought</p>
+        <blockquote id="quoteText">Small money discipline builds big peace.</blockquote>
+      </div>
+    </header>
+
+    <section id="summaryShell" class="summary-shell hidden-shell privacy-target">
+      <div id="summaryGrid" class="summary-grid"></div>
+    </section>
+
+    <main id="dashboardShell" class="main-grid hidden-shell privacy-target">
+      <section class="panel entry-panel">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Quick Entry</p>
+            <h2>Aaj ka record add karo</h2>
+          </div>
+          <p id="monthLabel" class="helper-text"></p>
+        </div>
+
+        <form id="entryForm" class="entry-form">
+          <div class="type-grid">
+            <label class="type-pill">
+              <input type="radio" name="entryType" value="expense" checked>
+              <span>Kharch</span>
+            </label>
+            <label class="type-pill">
+              <input type="radio" name="entryType" value="income">
+              <span>Kamai</span>
+            </label>
+            <label class="type-pill">
+              <input type="radio" name="entryType" value="loan-given">
+              <span>Udhar Diya</span>
+            </label>
+            <label class="type-pill">
+              <input type="radio" name="entryType" value="loan-returned">
+              <span>Udhar Wapas</span>
+            </label>
+          </div>
+
+          <div class="field-grid">
+            <label class="field">
+              <span>Amount</span>
+              <input id="amountInput" class="text-input" type="number" min="0" step="0.01" required placeholder="0.00">
+            </label>
+            <label class="field">
+              <span>Date</span>
+              <input id="dateInput" class="text-input" type="date" required>
+            </label>
+            <label class="field">
+              <span>Category</span>
+              <input id="categoryInput" class="text-input" type="text" placeholder="Food, Salary, Fuel, Rent">
+            </label>
+            <label id="personField" class="field hidden">
+              <span>Person Name</span>
+              <input id="personInput" class="text-input" type="text" placeholder="Example: Rahul">
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Note</span>
+            <textarea id="noteInput" class="text-area" rows="3" placeholder="Optional details"></textarea>
+          </label>
+
+          <button class="primary-btn wide-btn" type="submit">Save record</button>
+        </form>
+      </section>
+
+      <section class="panel side-panel">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Udhar Board</p>
+            <h2>Net balance by person</h2>
+          </div>
+        </div>
+        <div id="loanBoard" class="fixed-stack"></div>
+      </section>
+
+      <section class="panel ledger-panel">
+        <div class="section-head section-head-wrap">
+          <div>
+            <p class="section-kicker">Ledger</p>
+            <h2>Beautiful record timeline</h2>
+          </div>
+          <div class="filter-row">
+            <button class="filter-chip active" data-filter="all" type="button">All</button>
+            <button class="filter-chip" data-filter="today" type="button">Today</button>
+            <button class="filter-chip" data-filter="expense" type="button">Kharch</button>
+            <button class="filter-chip" data-filter="income" type="button">Kamai</button>
+            <button class="filter-chip" data-filter="loan" type="button">Udhar</button>
+          </div>
+        </div>
+        <div id="ledgerList" class="ledger-scroll"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer panel privacy-target">
+      <div class="footer-branding">
+        <img src="logo.png" alt="Hisaab Sathi logo" class="footer-logo">
+        <div>
+          <p class="section-kicker">Hisaab Sathi</p>
+          <strong>Hisaab Sathi</strong>
+        </div>
+      </div>
+      <p class="footer-copy">Crafted and developed by <strong>Er. Sangam Krishna</strong>.</p>
+    </footer>
+  </div>
+
+  <div id="menuDrawer" class="drawer-overlay">
+    <aside class="drawer panel">
+      <div class="drawer-head">
+        <div>
+          <p class="section-kicker">Hisaab Sathi Menu</p>
+          <h2>Tools and settings</h2>
+        </div>
+        <button id="menuClose" class="chip-btn" type="button">Close</button>
+      </div>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Quick Actions</p>
+        <div class="button-row">
+          <button id="installButton" class="primary-btn hidden" type="button">Install app</button>
+          <button id="themeToggle" class="chip-btn" type="button">Toggle Theme</button>
+          <button id="lockNowButton" class="chip-btn" type="button">Lock now</button>
+        </div>
+      </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Family Login</p>
+        <p id="authState" class="helper-text">No active family login</p>
+        <div class="button-row">
+          <button id="authButton" class="primary-btn" type="button">Login with Google</button>
+          <button id="cloudSyncButton" class="chip-btn" type="button">Sync cloud</button>
+        </div>
+        <p id="cloudStatus" class="helper-text">Same login works across the whole Sathi family.</p>
+      </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Passcode</p>
+        <div class="button-row">
+          <button id="openPasscodeSetup" class="chip-btn" type="button">Set / Change passcode</button>
+          <button id="removePasscode" class="chip-btn" type="button">Remove passcode</button>
+        </div>
+        <p id="passcodeStatus" class="helper-text">A 4-digit passcode helps keep your hisaab private on this device.</p>
+      </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Reminder</p>
+        <label class="toggle-row">
+          <span>Daily reminder between 8 and 9 PM</span>
+          <input id="notifToggle" type="checkbox">
+        </label>
+        <div class="button-row">
+          <select id="notifTime" class="text-input compact">
+            <option value="20:00">8:00 PM</option>
+            <option value="20:30">8:30 PM</option>
+            <option value="21:00">9:00 PM</option>
+          </select>
+          <button id="notifSave" class="chip-btn" type="button">Save</button>
+        </div>
+        <p id="notifStatus" class="helper-text">Reminder is local and works when the browser allows notifications.</p>
+      </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Backup and Restore</p>
+        <div class="button-column">
+          <button id="downloadBackup" class="chip-btn" type="button">Download JSON backup</button>
+          <button id="gmailBackup" class="primary-btn" type="button">Backup export to Gmail</button>
+          <button id="copyBackupCode" class="chip-btn" type="button">Copy backup code</button>
+          <label class="file-button">
+            <span>Import JSON backup</span>
+            <input id="restoreFile" type="file" accept=".json,application/json">
+          </label>
+        </div>
+        <textarea id="backupCodeInput" class="text-area" rows="5" placeholder="Paste backup code or raw JSON here"></textarea>
+        <button id="restoreBackupCode" class="primary-btn wide-btn" type="button">Restore from pasted backup</button>
+        <p id="backupStatus" class="helper-text">Use Gmail backup before changing phone or formatting device.</p>
+        <p id="restoreStatus" class="helper-text">Restoring replaces current local data after confirmation.</p>
+      </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">Feedback</p>
+        <label class="field">
+          <span>Category</span>
+          <select id="feedbackCategory" class="text-input">
+            <option value="Bug">Bug</option>
+            <option value="Feature">Feature request</option>
+            <option value="Suggestion">Suggestion</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Message</span>
+          <textarea id="feedbackMessage" class="text-area" rows="4" placeholder="What should improve?"></textarea>
+        </label>
+        <button id="feedbackSend" class="primary-btn wide-btn" type="button">Send feedback</button>
+      </section>
+
+      <section class="drawer-section">
+        <p class="section-kicker">More Pages</p>
+        <div class="footer-links">
+          <a href="about.html">About</a>
+          <a href="resources.html">Resources</a>
+          <a href="contact.html">Contact</a>
+          <a href="privacy-policy.html">Privacy Policy</a>
+          <a href="terms.html">Terms & Conditions</a>
+          <a href="https://snakeeye-sudo.github.io/Aapka-Sathi/" target="_blank" rel="noopener">Family Hub</a>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <div id="entryPromptModal" class="modal-overlay hidden">
+    <div class="modal-card hero-modal">
+      <p class="section-kicker">Welcome back</p>
+      <h2>Aaj ka record add karo</h2>
+      <p class="helper-text">Ek entry add kar do aur poora hisaab turant clear dikh jayega. Agar abhi nahi karna ho to skip bhi kar sakte ho.</p>
+      <div class="button-row">
+        <button id="entryPromptAdd" class="primary-btn" type="button">Add record</button>
+        <button id="entryPromptSkip" class="chip-btn" type="button">Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="installModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p class="section-kicker">Install Hisaab Sathi</p>
+      <h2>Phone me app jaisa rakho</h2>
+      <p class="helper-text">Install karoge to app fast khulega, easily milega, aur daily kharch add karna aur simple ho jayega.</p>
+      <div class="button-row">
+        <button id="installNowButton" class="primary-btn" type="button">Install now</button>
+        <button id="installLaterButton" class="chip-btn" type="button">Not now</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="reminderModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p class="section-kicker">Daily Reminder</p>
+      <h2>Raat me yaad dila du?</h2>
+      <p class="helper-text">8 se 9 baje ke beech ek notification bhejenge ki aaj ka kharch add kar do. Time select kar lo.</p>
+      <div class="button-column">
+        <button class="time-choice" data-time-choice="20:00" type="button">8:00 PM</button>
+        <button class="time-choice" data-time-choice="20:30" type="button">8:30 PM</button>
+        <button class="time-choice" data-time-choice="21:00" type="button">9:00 PM</button>
+      </div>
+      <div class="button-row">
+        <button id="reminderSkip" class="chip-btn" type="button">Skip for now</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="passcodePromptModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p class="section-kicker">Secure your hisaab</p>
+      <h2>4-digit passcode set karna chahoge?</h2>
+      <p class="helper-text">Agar phone kisi aur ke haath me chale jaye to passcode se aapka daily finance safe rahega.</p>
+      <div class="button-row">
+        <button id="passcodePromptYes" class="primary-btn" type="button">Set passcode</button>
+        <button id="passcodePromptLater" class="chip-btn" type="button">Maybe later</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="passcodeSetupModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p class="section-kicker">Passcode Setup</p>
+      <h2>4-digit passcode</h2>
+      <div class="field">
+        <span>Enter passcode</span>
+        <input id="passcodeInput" class="text-input" type="password" inputmode="numeric" maxlength="4" placeholder="1234">
+      </div>
+      <div class="field">
+        <span>Confirm passcode</span>
+        <input id="passcodeConfirmInput" class="text-input" type="password" inputmode="numeric" maxlength="4" placeholder="1234">
+      </div>
+      <div class="field">
+        <span>Optional hint</span>
+        <input id="passcodeHintInput" class="text-input" type="text" placeholder="Only for you">
+      </div>
+      <p id="passcodeSetupStatus" class="helper-text"></p>
+      <div class="button-row">
+        <button id="passcodeSaveButton" class="primary-btn" type="button">Save passcode</button>
+        <button id="passcodeCancelButton" class="chip-btn" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="unlockOverlay" class="unlock-overlay hidden">
+    <div class="unlock-card">
+      <img src="logo.png" alt="Hisaab Sathi logo" class="unlock-logo">
+      <p class="section-kicker">Private Mode</p>
+      <h2>Passcode enter karo</h2>
+      <p id="unlockHint" class="helper-text"></p>
+      <input id="unlockPasscodeInput" class="text-input center-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+      <p id="unlockStatus" class="helper-text"></p>
+      <div class="button-row unlock-row">
+        <button id="unlockButton" class="primary-btn" type="button">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+  <script defer src="notification-prompt.js"></script>
+</body>
+</html>
+

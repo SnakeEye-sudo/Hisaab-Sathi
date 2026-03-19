@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Hisaab Sathi logo">
+  <defs>
+    <!-- Background gradient: deep teal-navy -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1e2d"/>
+      <stop offset="100%" stop-color="#0d2e40"/>
+    </linearGradient>
+    <!-- Gold coin gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe066"/>
+      <stop offset="50%" stop-color="#f9a825"/>
+      <stop offset="100%" stop-color="#e65c00"/>
+    </linearGradient>
+    <!-- Gold coin shine -->
+    <radialGradient id="coinShine" cx="38%" cy="32%" r="55%">
+      <stop offset="0%" stop-color="#fff9c4" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#f9a825" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Green accent for ledger spine -->
+    <linearGradient id="spineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2de8a8"/>
+      <stop offset="100%" stop-color="#00b37a"/>
+    </linearGradient>
+    <!-- Ledger page gradient -->
+    <linearGradient id="pageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#112d42"/>
+      <stop offset="100%" stop-color="#0d2233"/>
+    </linearGradient>
+    <!-- Drop shadow filter -->
+    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="14" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+    <!-- Coin glow -->
+    <filter id="coinGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#f9a825" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <!-- App background -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGrad)"/>
+
+  <!-- Subtle grid texture lines (background depth) -->
+  <line x1="0" y1="170" x2="512" y2="170" stroke="#ffffff" stroke-width="0.6" opacity="0.03"/>
+  <line x1="0" y1="340" x2="512" y2="340" stroke="#ffffff" stroke-width="0.6" opacity="0.03"/>
+  <line x1="170" y1="0" x2="170" y2="512" stroke="#ffffff" stroke-width="0.6" opacity="0.03"/>
+  <line x1="340" y1="0" x2="340" y2="512" stroke="#ffffff" stroke-width="0.6" opacity="0.03"/>
+
+  <!-- ── LEDGER BOOK ── -->
+  <!-- Book shadow base -->
+  <rect x="72" y="100" width="268" height="330" rx="20" fill="#000000" opacity="0.3" filter="url(#dropShadow)"/>
+  <!-- Book pages (right side, slight offset for depth) -->
+  <rect x="82" y="108" width="258" height="316" rx="18" fill="#1a3a50"/>
+  <!-- Book cover -->
+  <rect x="72" y="100" width="258" height="316" rx="18" fill="url(#pageGrad)"/>
+  <!-- Spine -->
+  <rect x="72" y="100" width="30" height="316" rx="15" fill="url(#spineGrad)"/>
+  <!-- Spine highlight -->
+  <rect x="72" y="100" width="8" height="316" rx="4" fill="#ffffff" opacity="0.12"/>
+
+  <!-- Header bar inside ledger -->
+  <rect x="118" y="136" width="196" height="44" rx="10" fill="#1a3a50"/>
+  <!-- "HISAAB" text in header -->
+  <text x="216" y="165" text-anchor="middle"
+    font-family="'Segoe UI', Arial, sans-serif"
+    font-size="22" font-weight="700" letter-spacing="3"
+    fill="#2de8a8" opacity="0.9">HISAAB</text>
+
+  <!-- Ledger rows -->
+  <!-- Row 1: income (green dot) -->
+  <circle cx="134" cy="210" r="6" fill="#2de8a8"/>
+  <rect x="150" y="204" width="110" height="12" rx="6" fill="#1e4d68" opacity="0.9"/>
+  <rect x="272" y="204" width="42" height="12" rx="6" fill="#2de8a8" opacity="0.5"/>
+
+  <!-- Row 2: expense (red dot) -->
+  <circle cx="134" cy="238" r="6" fill="#ff6b6b"/>
+  <rect x="150" y="232" width="90" height="12" rx="6" fill="#1e4d68" opacity="0.8"/>
+  <rect x="272" y="232" width="42" height="12" rx="6" fill="#ff6b6b" opacity="0.5"/>
+
+  <!-- Row 3: udhar (amber dot) -->
+  <circle cx="134" cy="266" r="6" fill="#f9a825"/>
+  <rect x="150" y="260" width="120" height="12" rx="6" fill="#1e4d68" opacity="0.8"/>
+  <rect x="272" y="260" width="42" height="12" rx="6" fill="#f9a825" opacity="0.5"/>
+
+  <!-- Row 4: returned (teal dot) -->
+  <circle cx="134" cy="294" r="6" fill="#2de8a8" opacity="0.6"/>
+  <rect x="150" y="288" width="80" height="12" rx="6" fill="#1e4d68" opacity="0.7"/>
+  <rect x="272" y="288" width="42" height="12" rx="6" fill="#2de8a8" opacity="0.35"/>
+
+  <!-- Divider -->
+  <line x1="118" y1="318" x2="314" y2="318" stroke="#2de8a8" stroke-width="1.5" opacity="0.35"/>
+
+  <!-- Total row -->
+  <rect x="118" y="330" width="80" height="14" rx="7" fill="#1e4d68" opacity="0.6"/>
+  <rect x="258" y="330" width="56" height="14" rx="7" fill="#2de8a8" opacity="0.6"/>
+
+  <!-- ── GOLD COIN (overlapping bottom-right) ── -->
+  <circle cx="358" cy="348" r="96" fill="url(#goldGrad)" filter="url(#coinGlow)"/>
+  <!-- Coin rim -->
+  <circle cx="358" cy="348" r="96" fill="none" stroke="#ffe066" stroke-width="5" opacity="0.4"/>
+  <!-- Coin inner ring -->
+  <circle cx="358" cy="348" r="80" fill="none" stroke="#ffe066" stroke-width="2.5" opacity="0.3"/>
+  <!-- Coin shine overlay -->
+  <circle cx="358" cy="348" r="96" fill="url(#coinShine)"/>
+  <!-- Rupee symbol -->
+  <text x="358" y="378"
+    text-anchor="middle"
+    font-family="'Noto Sans', 'Segoe UI', Arial, sans-serif"
+    font-size="88" font-weight="900"
+    fill="#5c2800" opacity="0.88">₹</text>
+
+  <!-- Mini upward trend on coin -->
+  <polyline points="316,372 334,350 352,362 378,328"
+    fill="none" stroke="#5c2800" stroke-width="5"
+    stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+  <circle cx="378" cy="328" r="5" fill="#5c2800" opacity="0.35"/>
+</svg>
