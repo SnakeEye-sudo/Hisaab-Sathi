@@ -1,5 +1,5 @@
 ﻿const CACHE_PREFIX = 'hisaab-sathi';
-const CACHE = `${CACHE_PREFIX}-v2026-03-19`;
+const CACHE = `${CACHE_PREFIX}-v2026-03-19b`;
 const APP_SHELL = [
   './',
   './index.html',
