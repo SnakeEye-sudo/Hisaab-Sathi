@@ -1,23 +1,72 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Hisaab Sathi logo">
   <defs>
-    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#071521"/>
-      <stop offset="100%" stop-color="#0f2f43"/>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1f2d"/>
+      <stop offset="100%" stop-color="#0a2a3a"/>
     </linearGradient>
-    <linearGradient id="cash" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#59f0c2"/>
-      <stop offset="100%" stop-color="#ffd14a"/>
+    <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f9c74f"/>
+      <stop offset="100%" stop-color="#f4a11d"/>
     </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#43e8b0"/>
+      <stop offset="100%" stop-color="#1ec99a"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <filter id="coinShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#f9c74f" flood-opacity="0.4"/>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="132" fill="url(#bg)"/>
-  <rect x="90" y="120" width="332" height="236" rx="46" fill="#0a1f2d" stroke="url(#cash)" stroke-width="16"/>
-  <rect x="124" y="154" width="264" height="54" rx="20" fill="#113145"/>
-  <rect x="124" y="226" width="146" height="28" rx="14" fill="#d9fdf2" opacity="0.94"/>
-  <rect x="124" y="272" width="190" height="28" rx="14" fill="#d9fdf2" opacity="0.8"/>
-  <circle cx="346" cy="254" r="54" fill="url(#cash)"/>
-  <text x="346" y="272" text-anchor="middle" font-family="Space Grotesk, Arial, sans-serif" font-size="46" font-weight="700" fill="#062633">₹</text>
-  <path d="M144 88h124" stroke="#d9fdf2" stroke-width="20" stroke-linecap="round"/>
-  <path d="M132 394h248" stroke="#113145" stroke-width="20" stroke-linecap="round"/>
-  <text x="150" y="198" font-family="Space Grotesk, Arial, sans-serif" font-size="54" font-weight="700" fill="#eef6ff">HS</text>
-</svg>
 
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="120" fill="url(#bgGrad)"/>
+
+  <!-- Ledger / book body -->
+  <rect x="88" y="108" width="260" height="310" rx="22" fill="#0f2d40" filter="url(#shadow)"/>
+
+  <!-- Ledger spine accent -->
+  <rect x="88" y="108" width="28" height="310" rx="14" fill="url(#accentGrad)" opacity="0.9"/>
+
+  <!-- Ledger lines -->
+  <rect x="136" y="158" width="180" height="14" rx="7" fill="#1e4a62" opacity="0.9"/>
+  <rect x="136" y="192" width="140" height="12" rx="6" fill="#1e4a62" opacity="0.7"/>
+  <rect x="136" y="222" width="160" height="12" rx="6" fill="#1e4a62" opacity="0.7"/>
+  <rect x="136" y="252" width="120" height="12" rx="6" fill="#1e4a62" opacity="0.6"/>
+  <rect x="136" y="282" width="150" height="12" rx="6" fill="#1e4a62" opacity="0.6"/>
+  <rect x="136" y="312" width="100" height="12" rx="6" fill="#1e4a62" opacity="0.5"/>
+
+  <!-- Divider line -->
+  <rect x="136" y="342" width="180" height="3" rx="1.5" fill="url(#accentGrad)" opacity="0.5"/>
+
+  <!-- Total row -->
+  <rect x="136" y="358" width="100" height="14" rx="7" fill="#43e8b0" opacity="0.25"/>
+  <rect x="256" y="358" width="60" height="14" rx="7" fill="#43e8b0" opacity="0.5"/>
+
+  <!-- Gold coin (overlapping bottom-right) -->
+  <circle cx="348" cy="340" r="88" fill="url(#coinGrad)" filter="url(#coinShadow)"/>
+  <!-- Coin inner ring -->
+  <circle cx="348" cy="340" r="72" fill="none" stroke="#fde68a" stroke-width="5" opacity="0.6"/>
+  <!-- Rupee symbol -->
+  <text
+    x="348" y="368"
+    text-anchor="middle"
+    font-family="'Noto Sans', 'Arial', sans-serif"
+    font-size="80"
+    font-weight="800"
+    fill="#7c3a00"
+    opacity="0.95"
+  >₹</text>
+
+  <!-- Small upward trend arrow on coin -->
+  <polyline
+    points="310,360 330,338 348,350 370,318"
+    fill="none"
+    stroke="#7c3a00"
+    stroke-width="5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.5"
+  />
+</svg>
