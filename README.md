@@ -1,4 +1,4 @@
-# Hisaab Sathi
+﻿# Hisaab Sathi
 
 ## About
 
@@ -9,6 +9,12 @@ Daily finance and udhar ledger app with mobile-first expense tracking and remind
 - GitHub repo: https://github.com/SnakeEye-sudo/Hisaab-Sathi
 - Tags: sathi-family, finance-app, expense-tracker, ledger, pwa, hindi-app
 
+<!-- app-screenshot:start -->
+## App Screenshot
+
+![App screenshot](docs/preview.png)
+
+<!-- app-screenshot:end -->
 ## Creator
 
 Built and originally created by **Er. Sangam Krishna** ([SnakeEye-sudo](https://github.com/SnakeEye-sudo)).
@@ -24,3 +30,4 @@ Built and originally created by **Er. Sangam Krishna** ([SnakeEye-sudo](https://
 This repository uses the **MIT License** with a required **NOTICE** file.
 That means collaboration is allowed, but copyright and attribution notices must stay preserved.
 See [LICENSE](LICENSE), [NOTICE](NOTICE), and [CONTRIBUTING.md](CONTRIBUTING.md).
+
