@@ -679,3 +679,27 @@ h3 { margin: 0; font-size: 18px; }
     height: 58px;
   }
 }
+
+/* Sathi mobile drawer hotfix */
+.drawer-overlay {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.drawer {
+  max-height: calc(100dvh - 24px);
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 720px) {
+  .drawer-overlay {
+    justify-content: center;
+    padding: 12px;
+  }
+
+  .drawer {
+    width: 100%;
+    margin: 0;
+  }
+}
