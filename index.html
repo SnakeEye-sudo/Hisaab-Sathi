@@ -1,348 +1,414 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hisaab Sathi</title>
-  <meta name="description" content="Simple daily finance tracker for expenses, income, and udhar management.">
-  <meta name="theme-color" content="#082032">
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="apple-touch-icon" href="logo.png">
-  <link rel="manifest" href="manifest.json">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0a1f0a">
+<meta name="description" content="Hisaab Sathi – Expense tracker, income log, and udhar (credit) ledger">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Hisaab Sathi 💰</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root {
+    --bg: #0a1a0a;
+    --surface: #0f240f;
+    --surface2: #162e16;
+    --border: rgba(34,197,94,0.15);
+    --accent: #22c55e;
+    --accent2: #4ade80;
+    --red: #f87171;
+    --orange: #fb923c;
+    --text: #f0fff4;
+    --muted: #5a8a6a;
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  [data-theme="light"] { --bg: #f0fdf4; --surface: #fff; --surface2: #dcfce7; --text: #052e16; --muted: #16a34a; --border: rgba(34,197,94,0.2); }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; }
+  .topbar-title { font-size: 18px; font-weight: 700; }
+  .topbar-sub { font-size: 11px; color: var(--muted); }
+  .icon-btn { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  .main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; }
+
+  /* BALANCE HERO */
+  .balance-hero {
+    margin: 16px 20px 0;
+    background: linear-gradient(135deg, #0f3d0f, #162e16);
+    border: 1.5px solid rgba(34,197,94,0.25);
+    border-radius: 24px;
+    padding: 24px;
+    text-align: center;
+  }
+  .balance-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .balance-amount { font-size: 42px; font-weight: 900; letter-spacing: -1px; }
+  .balance-amount.positive { color: var(--accent2); }
+  .balance-amount.negative { color: var(--red); }
+  .balance-row { display: flex; gap: 20px; justify-content: center; margin-top: 16px; }
+  .balance-item { text-align: center; }
+  .balance-item-val { font-size: 18px; font-weight: 800; }
+  .balance-item-val.inc { color: var(--accent2); }
+  .balance-item-val.exp { color: var(--red); }
+  .balance-item-key { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ADD ENTRY */
+  .type-tabs { display: flex; gap: 8px; padding: 14px 20px 0; }
+  .type-tab {
+    flex: 1; padding: 10px; border-radius: 14px; border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--muted); font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: var(--font); transition: all 0.2s; text-align: center;
+  }
+  .type-tab.active.income { background: rgba(34,197,94,0.2); border-color: var(--accent); color: var(--accent2); }
+  .type-tab.active.expense { background: rgba(248,113,113,0.2); border-color: var(--red); color: var(--red); }
+  .type-tab.active.udhar-diya { background: rgba(251,146,60,0.2); border-color: var(--orange); color: var(--orange); }
+  .type-tab.active.udhar-liya { background: rgba(96,165,250,0.2); border-color: #60a5fa; color: #93c5fd; }
+
+  .add-form { padding: 14px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .form-row { display: flex; gap: 10px; }
+  .form-input {
+    flex: 1; padding: 14px 16px; border-radius: 16px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    color: var(--text); font-size: 15px; font-family: var(--font); outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--muted); }
+  .amount-input {
+    padding: 14px 16px; border-radius: 16px; border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--text); font-size: 18px; font-weight: 700;
+    font-family: var(--font); outline: none; width: 130px; text-align: right;
+    transition: border-color 0.2s;
+  }
+  .amount-input:focus { border-color: var(--accent); }
+  .cat-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cat-btn {
+    padding: 7px 12px; border-radius: 50px; border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: var(--font); transition: all 0.2s;
+  }
+  .cat-btn.active { background: var(--accent); border-color: var(--accent); color: #0a1a0a; }
+  .add-btn {
+    width: 100%; padding: 16px; border-radius: 18px; border: none;
+    background: var(--accent); color: #0a1a0a; font-size: 16px; font-weight: 800;
+    cursor: pointer; font-family: var(--font); box-shadow: 0 4px 16px rgba(34,197,94,0.3); transition: all 0.2s;
+  }
+  .add-btn:active { transform: scale(0.97); }
+
+  /* FILTER ROW */
+  .filter-row { display: flex; gap: 8px; padding: 12px 20px 4px; overflow-x: auto; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-btn {
+    padding: 7px 14px; border-radius: 50px; border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: var(--font); white-space: nowrap; transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #0a1a0a; }
+
+  /* ENTRIES */
+  .entries-list { padding: 0 20px; display: flex; flex-direction: column; gap: 8px; }
+  .entry-item {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .entry-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .entry-icon.income { background: rgba(34,197,94,0.15); }
+  .entry-icon.expense { background: rgba(248,113,113,0.15); }
+  .entry-icon.udhar-diya { background: rgba(251,146,60,0.15); }
+  .entry-icon.udhar-liya { background: rgba(96,165,250,0.15); }
+  .entry-info { flex: 1; min-width: 0; }
+  .entry-desc { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .entry-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .entry-amount { font-size: 16px; font-weight: 800; }
+  .entry-amount.income { color: var(--accent2); }
+  .entry-amount.expense { color: var(--red); }
+  .entry-amount.udhar-diya { color: var(--orange); }
+  .entry-amount.udhar-liya { color: #93c5fd; }
+  .entry-del { width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(248,113,113,0.3); background: rgba(248,113,113,0.1); color: var(--red); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  .empty-state { text-align: center; padding: 32px 20px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+  .section-header { padding: 16px 20px 6px; font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); z-index: 100; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 20px; border-radius: 12px; cursor: pointer; border: none; background: none; color: var(--muted); font-family: var(--font); transition: all 0.2s; }
+  .nav-item.active { color: var(--accent); }
+  .nav-item span { font-size: 10px; font-weight: 600; }
+  .nav-item svg { width: 22px; height: 22px; }
+  .view { display: none; }
+  .view.active { display: block; }
+</style>
 </head>
 <body data-theme="dark">
-  <div class="money-haze haze-a"></div>
-  <div class="money-haze haze-b"></div>
-  <div class="money-haze haze-c"></div>
-  <div class="grid-noise"></div>
 
-  <div class="app-shell">
-    <header class="topbar panel privacy-target">
-      <div class="topbar-row">
-        <div class="topbar-brand">
-          <img src="logo.png" alt="Hisaab Sathi logo" class="brand-logo">
-          <div>
-            <p class="eyebrow">Hisaab Sathi</p>
-            <h1>Hisaab Sathi</h1>
-            <p class="hero-copy">Roz ka kharch, kamai, aur udhar ek jagah. Seedha, safe, aur clear.</p>
-          </div>
-        </div>
-        <div class="topbar-actions">
-          <button id="menuOpen" class="menu-btn" type="button" aria-label="Open menu">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-        </div>
+<div class="topbar">
+  <div class="topbar-brand">
+    <span style="font-size:22px">💰</span>
+    <div>
+      <div class="topbar-title">Hisaab Sathi</div>
+      <div class="topbar-sub">Finance & Udhar Ledger</div>
+    </div>
+  </div>
+  <button class="icon-btn" id="themeBtn">🌙</button>
+</div>
+
+<div class="main">
+
+  <!-- HOME VIEW -->
+  <div class="view active" id="view-home">
+    <!-- Balance hero -->
+    <div class="balance-hero">
+      <div class="balance-label">Net Balance</div>
+      <div class="balance-amount" id="netBalance">₹0</div>
+      <div class="balance-row">
+        <div class="balance-item"><div class="balance-item-val inc" id="totalIncome">₹0</div><div class="balance-item-key">Aaya ↑</div></div>
+        <div class="balance-item"><div class="balance-item-val exp" id="totalExpense">₹0</div><div class="balance-item-key">Gaya ↓</div></div>
       </div>
-      <a class="family-badge" href="https://snakeeye-sudo.github.io/Aapka-Sathi/" target="_blank" rel="noopener">Part of Aapka-Sathi Family</a>
-      <div class="quote-strip">
-        <p class="section-kicker">Money Thought</p>
-        <blockquote id="quoteText">Small money discipline builds big peace.</blockquote>
+    </div>
+
+    <!-- Type tabs -->
+    <div class="type-tabs">
+      <button class="type-tab active income" data-type="income" onclick="selectType(this)">💚 Aaya</button>
+      <button class="type-tab expense" data-type="expense" onclick="selectType(this)">❤️ Gaya</button>
+      <button class="type-tab udhar-diya" data-type="udhar-diya" onclick="selectType(this)">🟠 Diya</button>
+      <button class="type-tab udhar-liya" data-type="udhar-liya" onclick="selectType(this)">🔵 Liya</button>
+    </div>
+
+    <!-- Add form -->
+    <div class="add-form">
+      <div class="form-row">
+        <input class="form-input" id="descInput" type="text" placeholder="Kya ke liye? (e.g. Kirana, Salary...)">
+        <input class="amount-input" id="amountInput" type="number" placeholder="₹0" min="1">
       </div>
-    </header>
-
-    <section id="summaryShell" class="summary-shell hidden-shell privacy-target">
-      <div id="summaryGrid" class="summary-grid"></div>
-    </section>
-
-    <main id="dashboardShell" class="main-grid hidden-shell privacy-target">
-      <section class="panel entry-panel">
-        <div class="section-head">
-          <div>
-            <p class="section-kicker">Quick Entry</p>
-            <h2>Aaj ka record add karo</h2>
-          </div>
-          <p id="monthLabel" class="helper-text"></p>
-        </div>
-
-        <form id="entryForm" class="entry-form">
-          <div class="type-grid">
-            <label class="type-pill">
-              <input type="radio" name="entryType" value="expense" checked>
-              <span>Kharch</span>
-            </label>
-            <label class="type-pill">
-              <input type="radio" name="entryType" value="income">
-              <span>Kamai</span>
-            </label>
-            <label class="type-pill">
-              <input type="radio" name="entryType" value="loan-given">
-              <span>Udhar Diya</span>
-            </label>
-            <label class="type-pill">
-              <input type="radio" name="entryType" value="loan-returned">
-              <span>Udhar Wapas</span>
-            </label>
-          </div>
-
-          <div class="field-grid">
-            <label class="field">
-              <span>Amount</span>
-              <input id="amountInput" class="text-input" type="number" min="0" step="0.01" required placeholder="0.00">
-            </label>
-            <label class="field">
-              <span>Date</span>
-              <input id="dateInput" class="text-input" type="date" required>
-            </label>
-            <label class="field">
-              <span>Category</span>
-              <input id="categoryInput" class="text-input" type="text" placeholder="Food, Salary, Fuel, Rent">
-            </label>
-            <label id="personField" class="field hidden">
-              <span>Person Name</span>
-              <input id="personInput" class="text-input" type="text" placeholder="Example: Rahul">
-            </label>
-          </div>
-
-          <label class="field">
-            <span>Note</span>
-            <textarea id="noteInput" class="text-area" rows="3" placeholder="Optional details"></textarea>
-          </label>
-
-          <button class="primary-btn wide-btn" type="submit">Save record</button>
-        </form>
-      </section>
-
-      <section class="panel side-panel">
-        <div class="section-head">
-          <div>
-            <p class="section-kicker">Udhar Board</p>
-            <h2>Net balance by person</h2>
-          </div>
-        </div>
-        <div id="loanBoard" class="fixed-stack"></div>
-      </section>
-
-      <section class="panel ledger-panel">
-        <div class="section-head section-head-wrap">
-          <div>
-            <p class="section-kicker">Ledger</p>
-            <h2>Beautiful record timeline</h2>
-          </div>
-          <div class="filter-row">
-            <button class="filter-chip active" data-filter="all" type="button">All</button>
-            <button class="filter-chip" data-filter="today" type="button">Today</button>
-            <button class="filter-chip" data-filter="expense" type="button">Kharch</button>
-            <button class="filter-chip" data-filter="income" type="button">Kamai</button>
-            <button class="filter-chip" data-filter="loan" type="button">Udhar</button>
-          </div>
-        </div>
-        <div id="ledgerList" class="ledger-scroll"></div>
-      </section>
-    </main>
-
-    <footer class="site-footer panel privacy-target">
-      <div class="footer-branding">
-        <img src="logo.png" alt="Hisaab Sathi logo" class="footer-logo">
-        <div>
-          <p class="section-kicker">Hisaab Sathi</p>
-          <strong>Hisaab Sathi</strong>
-        </div>
+      <div class="cat-row" id="catRow">
+        <!-- populated by JS -->
       </div>
-      <p class="footer-copy">Crafted and developed by <strong>Er. Sangam Krishna</strong>.</p>
-    </footer>
+      <div class="form-row">
+        <input class="form-input" id="personInput" type="text" placeholder="Kiska naam? (Udhar ke liye)" style="display:none">
+        <input class="form-input" id="dateInput" type="date">
+      </div>
+      <button class="add-btn" onclick="addEntry()">+ Add Hisaab</button>
+    </div>
+
+    <!-- Recent entries -->
+    <div class="section-header">Recent entries</div>
+    <div class="filter-row">
+      <button class="filter-btn active" data-filter="all" onclick="filterEntries(this)">All</button>
+      <button class="filter-btn" data-filter="income" onclick="filterEntries(this)">💚 Aaya</button>
+      <button class="filter-btn" data-filter="expense" onclick="filterEntries(this)">❤️ Gaya</button>
+      <button class="filter-btn" data-filter="udhar-diya" onclick="filterEntries(this)">🟠 Diya</button>
+      <button class="filter-btn" data-filter="udhar-liya" onclick="filterEntries(this)">🔵 Liya</button>
+    </div>
+    <div style="height:10px"></div>
+    <div class="entries-list" id="entriesList">
+      <div class="empty-state">💰<br>Koi hisaab nahi abhi.<br>Pehla entry add karo!</div>
+    </div>
   </div>
 
-  <div id="menuDrawer" class="drawer-overlay">
-    <aside class="drawer panel">
-      <div class="drawer-head">
-        <div>
-          <p class="section-kicker">Hisaab Sathi Menu</p>
-          <h2>Tools and settings</h2>
-        </div>
-        <button id="menuClose" class="chip-btn" type="button">Close</button>
+  <!-- UDHAR VIEW -->
+  <div class="view" id="view-udhar">
+    <div class="section-header">Udhar Diya (Teri tarf se)</div>
+    <div class="entries-list" id="udharDiyaList"><div class="empty-state">Koi udhar nahi diya.</div></div>
+    <div class="section-header">Udhar Liya (Dusron se)</div>
+    <div class="entries-list" id="udharLiyaList"><div class="empty-state">Koi udhar nahi liya.</div></div>
+    <div style="margin:16px 20px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:16px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:14px;color:var(--muted)">Log tujhe denge</span>
+        <span style="font-size:16px;font-weight:800;color:var(--accent2)" id="udharReceivable">₹0</span>
       </div>
-
-      <section class="drawer-section">
-        <p class="section-kicker">Quick Actions</p>
-        <div class="button-row">
-          <button id="installButton" class="primary-btn hidden" type="button">Install app</button>
-          <button id="themeToggle" class="chip-btn" type="button">Toggle Theme</button>
-          <button id="lockNowButton" class="chip-btn" type="button">Lock now</button>
-        </div>
-      </section>
-
-      <section class="drawer-section">
-        <p class="section-kicker">Family Login</p>
-        <p id="authState" class="helper-text">No active family login</p>
-        <div class="button-row">
-          <button id="authButton" class="primary-btn" type="button">Login with Google</button>
-          <button id="cloudSyncButton" class="chip-btn" type="button">Sync cloud</button>
-        </div>
-        <p id="cloudStatus" class="helper-text">Same login works across the whole Sathi family.</p>
-      </section>
-
-      <section class="drawer-section">
-        <p class="section-kicker">Passcode</p>
-        <div class="button-row">
-          <button id="openPasscodeSetup" class="chip-btn" type="button">Set / Change passcode</button>
-          <button id="removePasscode" class="chip-btn" type="button">Remove passcode</button>
-        </div>
-        <p id="passcodeStatus" class="helper-text">A 4-digit passcode helps keep your hisaab private on this device.</p>
-      </section>
-
-      <section class="drawer-section">
-        <p class="section-kicker">Reminder</p>
-        <label class="toggle-row">
-          <span>Daily reminder between 8 and 9 PM</span>
-          <input id="notifToggle" type="checkbox">
-        </label>
-        <div class="button-row">
-          <select id="notifTime" class="text-input compact">
-            <option value="20:00">8:00 PM</option>
-            <option value="20:30">8:30 PM</option>
-            <option value="21:00">9:00 PM</option>
-          </select>
-          <button id="notifSave" class="chip-btn" type="button">Save</button>
-        </div>
-        <p id="notifStatus" class="helper-text">Reminder is local and works when the browser allows notifications.</p>
-      </section>
-
-      <section class="drawer-section">
-        <p class="section-kicker">Backup and Restore</p>
-        <div class="button-column">
-          <button id="downloadBackup" class="chip-btn" type="button">Download JSON backup</button>
-          <button id="gmailBackup" class="primary-btn" type="button">Backup export to Gmail</button>
-          <button id="copyBackupCode" class="chip-btn" type="button">Copy backup code</button>
-          <label class="file-button">
-            <span>Import JSON backup</span>
-            <input id="restoreFile" type="file" accept=".json,application/json">
-          </label>
-        </div>
-        <textarea id="backupCodeInput" class="text-area" rows="5" placeholder="Paste backup code or raw JSON here"></textarea>
-        <button id="restoreBackupCode" class="primary-btn wide-btn" type="button">Restore from pasted backup</button>
-        <p id="backupStatus" class="helper-text">Use Gmail backup before changing phone or formatting device.</p>
-        <p id="restoreStatus" class="helper-text">Restoring replaces current local data after confirmation.</p>
-      </section>
-
-      <section class="drawer-section">
-        <p class="section-kicker">Feedback</p>
-        <label class="field">
-          <span>Category</span>
-          <select id="feedbackCategory" class="text-input">
-            <option value="Bug">Bug</option>
-            <option value="Feature">Feature request</option>
-            <option value="Suggestion">Suggestion</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Message</span>
-          <textarea id="feedbackMessage" class="text-area" rows="4" placeholder="What should improve?"></textarea>
-        </label>
-        <button id="feedbackSend" class="primary-btn wide-btn" type="button">Send feedback</button>
-      </section>
-
-      <section class="drawer-section">
-        <p class="section-kicker">More Pages</p>
-        <div class="footer-links">
-          <a href="about.html">About</a>
-          <a href="resources.html">Resources</a>
-          <a href="contact.html">Contact</a>
-          <a href="privacy-policy.html">Privacy Policy</a>
-          <a href="terms.html">Terms & Conditions</a>
-          <a href="https://snakeeye-sudo.github.io/Aapka-Sathi/" target="_blank" rel="noopener">Family Hub</a>
-        </div>
-      </section>
-    </aside>
-  </div>
-
-  <div id="entryPromptModal" class="modal-overlay hidden">
-    <div class="modal-card hero-modal">
-      <p class="section-kicker">Welcome back</p>
-      <h2>Aaj ka record add karo</h2>
-      <p class="helper-text">Ek entry add kar do aur poora hisaab turant clear dikh jayega. Agar abhi nahi karna ho to skip bhi kar sakte ho.</p>
-      <div class="button-row">
-        <button id="entryPromptAdd" class="primary-btn" type="button">Add record</button>
-        <button id="entryPromptSkip" class="chip-btn" type="button">Skip</button>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:14px;color:var(--muted)">Tu dega</span>
+        <span style="font-size:16px;font-weight:800;color:var(--red)" id="udharPayable">₹0</span>
       </div>
     </div>
   </div>
 
-  <div id="installModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <p class="section-kicker">Install Hisaab Sathi</p>
-      <h2>Phone me app jaisa rakho</h2>
-      <p class="helper-text">Install karoge to app fast khulega, easily milega, aur daily kharch add karna aur simple ho jayega.</p>
-      <div class="button-row">
-        <button id="installNowButton" class="primary-btn" type="button">Install now</button>
-        <button id="installLaterButton" class="chip-btn" type="button">Not now</button>
-      </div>
-    </div>
-  </div>
+</div>
 
-  <div id="reminderModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <p class="section-kicker">Daily Reminder</p>
-      <h2>Raat me yaad dila du?</h2>
-      <p class="helper-text">8 se 9 baje ke beech ek notification bhejenge ki aaj ka kharch add kar do. Time select kar lo.</p>
-      <div class="button-column">
-        <button class="time-choice" data-time-choice="20:00" type="button">8:00 PM</button>
-        <button class="time-choice" data-time-choice="20:30" type="button">8:30 PM</button>
-        <button class="time-choice" data-time-choice="21:00" type="button">9:00 PM</button>
-      </div>
-      <div class="button-row">
-        <button id="reminderSkip" class="chip-btn" type="button">Skip for now</button>
-      </div>
-    </div>
-  </div>
+<nav class="bottom-nav">
+  <button class="nav-item active" data-view="home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Hisaab</span>
+  </button>
+  <button class="nav-item" data-view="udhar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    <span>Udhar</span>
+  </button>
+</nav>
 
-  <div id="passcodePromptModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <p class="section-kicker">Secure your hisaab</p>
-      <h2>4-digit passcode set karna chahoge?</h2>
-      <p class="helper-text">Agar phone kisi aur ke haath me chale jaye to passcode se aapka daily finance safe rahega.</p>
-      <div class="button-row">
-        <button id="passcodePromptYes" class="primary-btn" type="button">Set passcode</button>
-        <button id="passcodePromptLater" class="chip-btn" type="button">Maybe later</button>
-      </div>
-    </div>
-  </div>
+<script>
+const STORAGE_KEY = 'hisaab-v3';
+const CATS = {
+  income: ['💼 Salary','🏠 Rent In','🎁 Gift','💹 Investment','🛒 Business','📦 Other'],
+  expense: ['🛒 Kirana','🍕 Khana','🚗 Transport','💊 Health','🎮 Entertainment','📱 Mobile','💡 Bill','👗 Kapde','📚 Padhai','📦 Other'],
+  'udhar-diya': ['👨 Dost','👩 Relative','🏢 Work','📦 Other'],
+  'udhar-liya': ['👨 Dost','👩 Relative','🏢 Work','📦 Other'],
+};
+const ICONS = { income:'💚', expense:'❤️', 'udhar-diya':'🟠', 'udhar-liya':'🔵' };
+const TYPE_LABEL = { income:'Aaya', expense:'Gaya', 'udhar-diya':'Udhar Diya', 'udhar-liya':'Udhar Liya' };
 
-  <div id="passcodeSetupModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <p class="section-kicker">Passcode Setup</p>
-      <h2>4-digit passcode</h2>
-      <div class="field">
-        <span>Enter passcode</span>
-        <input id="passcodeInput" class="text-input" type="password" inputmode="numeric" maxlength="4" placeholder="1234">
-      </div>
-      <div class="field">
-        <span>Confirm passcode</span>
-        <input id="passcodeConfirmInput" class="text-input" type="password" inputmode="numeric" maxlength="4" placeholder="1234">
-      </div>
-      <div class="field">
-        <span>Optional hint</span>
-        <input id="passcodeHintInput" class="text-input" type="text" placeholder="Only for you">
-      </div>
-      <p id="passcodeSetupStatus" class="helper-text"></p>
-      <div class="button-row">
-        <button id="passcodeSaveButton" class="primary-btn" type="button">Save passcode</button>
-        <button id="passcodeCancelButton" class="chip-btn" type="button">Cancel</button>
-      </div>
-    </div>
-  </div>
+let data = load();
+let selectedType = 'income';
+let selectedCat = '';
+let currentFilter = 'all';
 
-  <div id="unlockOverlay" class="unlock-overlay hidden">
-    <div class="unlock-card">
-      <img src="logo.png" alt="Hisaab Sathi logo" class="unlock-logo">
-      <p class="section-kicker">Private Mode</p>
-      <h2>Passcode enter karo</h2>
-      <p id="unlockHint" class="helper-text"></p>
-      <input id="unlockPasscodeInput" class="text-input center-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
-      <p id="unlockStatus" class="helper-text"></p>
-      <div class="button-row unlock-row">
-        <button id="unlockButton" class="primary-btn" type="button">Unlock</button>
-      </div>
-    </div>
-  </div>
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"entries":[]}'); }
+  catch { return { entries: [] }; }
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 
-  <script type="module" src="app.js"></script>
-  <script defer src="notification-prompt.js"></script>
+function selectType(btn) {
+  document.querySelectorAll('.type-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedType = btn.dataset.type;
+  selectedCat = '';
+  renderCats();
+  const personInput = document.getElementById('personInput');
+  personInput.style.display = (selectedType === 'udhar-diya' || selectedType === 'udhar-liya') ? 'flex' : 'none';
+}
+
+function renderCats() {
+  const row = document.getElementById('catRow');
+  row.innerHTML = (CATS[selectedType] || []).map(c => `
+    <button class="cat-btn ${selectedCat === c ? 'active' : ''}" onclick="selectCat(this,'${c}')">${c}</button>
+  `).join('');
+}
+
+function selectCat(btn, cat) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedCat = cat;
+}
+
+function addEntry() {
+  const desc = document.getElementById('descInput').value.trim();
+  const amount = parseFloat(document.getElementById('amountInput').value);
+  const person = document.getElementById('personInput').value.trim();
+  const date = document.getElementById('dateInput').value || new Date().toISOString().split('T')[0];
+
+  if (!desc && !selectedCat) { alert('Description ya category select karo!'); return; }
+  if (!amount || amount <= 0) { alert('Amount dalo!'); return; }
+
+  data.entries.unshift({
+    id: Date.now(), type: selectedType,
+    desc: desc || selectedCat || TYPE_LABEL[selectedType],
+    cat: selectedCat,
+    amount,
+    person,
+    date,
+    dateStr: new Date(date).toLocaleDateString('hi-IN', { dateStyle: 'medium' }),
+  });
+
+  save();
+  document.getElementById('descInput').value = '';
+  document.getElementById('amountInput').value = '';
+  document.getElementById('personInput').value = '';
+  selectedCat = '';
+  renderCats();
+  updateUI();
+}
+
+function filterEntries(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.dataset.filter;
+  renderEntries();
+}
+
+function updateUI() {
+  const inc = data.entries.filter(e => e.type === 'income').reduce((a, e) => a + e.amount, 0);
+  const exp = data.entries.filter(e => e.type === 'expense').reduce((a, e) => a + e.amount, 0);
+  const net = inc - exp;
+  const bal = document.getElementById('netBalance');
+  bal.textContent = '₹' + Math.abs(net).toLocaleString('hi-IN');
+  bal.className = 'balance-amount ' + (net >= 0 ? 'positive' : 'negative');
+  if (net < 0) bal.textContent = '-₹' + Math.abs(net).toLocaleString('hi-IN');
+  document.getElementById('totalIncome').textContent = '₹' + inc.toLocaleString('hi-IN');
+  document.getElementById('totalExpense').textContent = '₹' + exp.toLocaleString('hi-IN');
+
+  const udharD = data.entries.filter(e => e.type === 'udhar-diya').reduce((a, e) => a + e.amount, 0);
+  const udharL = data.entries.filter(e => e.type === 'udhar-liya').reduce((a, e) => a + e.amount, 0);
+  document.getElementById('udharReceivable').textContent = '₹' + udharD.toLocaleString('hi-IN');
+  document.getElementById('udharPayable').textContent = '₹' + udharL.toLocaleString('hi-IN');
+
+  renderEntries();
+  renderUdhar();
+}
+
+function renderEntries() {
+  const el = document.getElementById('entriesList');
+  const filtered = currentFilter === 'all' ? data.entries : data.entries.filter(e => e.type === currentFilter);
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty-state">💰<br>Koi entry nahi mili.</div>';
+    return;
+  }
+  el.innerHTML = filtered.slice(0, 30).map(e => `
+    <div class="entry-item">
+      <div class="entry-icon ${e.type}">${ICONS[e.type]}</div>
+      <div class="entry-info">
+        <div class="entry-desc">${e.desc}${e.person ? ` (${e.person})` : ''}</div>
+        <div class="entry-meta">${e.cat || TYPE_LABEL[e.type]} • ${e.dateStr}</div>
+      </div>
+      <span class="entry-amount ${e.type}">${e.type === 'income' ? '+' : '-'}₹${e.amount.toLocaleString('hi-IN')}</span>
+      <button class="entry-del" onclick="deleteEntry(${e.id})">✕</button>
+    </div>
+  `).join('');
+}
+
+function renderUdhar() {
+  const diya = data.entries.filter(e => e.type === 'udhar-diya');
+  const liya = data.entries.filter(e => e.type === 'udhar-liya');
+  const render = (entries, elId) => {
+    const el = document.getElementById(elId);
+    if (!entries.length) { el.innerHTML = '<div class="empty-state" style="padding:16px">Koi udhar nahi.</div>'; return; }
+    el.innerHTML = entries.map(e => `
+      <div class="entry-item">
+        <div class="entry-icon ${e.type}">${ICONS[e.type]}</div>
+        <div class="entry-info">
+          <div class="entry-desc">${e.person || 'Unknown'}</div>
+          <div class="entry-meta">${e.desc} • ${e.dateStr}</div>
+        </div>
+        <span class="entry-amount ${e.type}">₹${e.amount.toLocaleString('hi-IN')}</span>
+        <button class="entry-del" onclick="deleteEntry(${e.id})">✕</button>
+      </div>
+    `).join('');
+  };
+  render(diya, 'udharDiyaList');
+  render(liya, 'udharLiyaList');
+}
+
+function deleteEntry(id) {
+  data.entries = data.entries.filter(e => e.id !== id);
+  save(); updateUI();
+}
+
+// Init
+document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+renderCats();
+updateUI();
+
+// NAV
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('view-' + item.dataset.view).classList.add('active');
+  });
+});
+
+// THEME
+const savedTheme = localStorage.getItem('hisaab-theme') || 'dark';
+document.body.dataset.theme = savedTheme;
+document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const t = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.body.dataset.theme = t;
+  document.getElementById('themeBtn').textContent = t === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('hisaab-theme', t);
+});
+</script>
 </body>
 </html>
-
